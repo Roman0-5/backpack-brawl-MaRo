@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { buyBlocker, buyItem, newRun, sellBlocker, sellItem, sellPrice } from "./run";
+import { buyBlocker, buyItem, newRun, rerollBlocker, rerollShop, REROLL_COST, sellBlocker, sellItem, sellPrice } from "./run";
+import { rollShop } from "./shop";
 import type { RunState } from "./types";
 
 /** Run mit vollem Rucksack und genug Gold – nur der freie Platz fehlt. */
@@ -51,5 +52,32 @@ describe("sell", () => {
     const run = runWith(["pot-lid", null, null, null, null, null]);
     expect(sellBlocker(run, slot)).toBe("Empty slot");
     expect(sellItem(run, slot)).toBe(run);
+  });
+});
+
+describe("reroll", () => {
+  test("costs REROLL_COST and rolls new offers from the run's seed", () => {
+    const run = { ...newRun(1), gold: 5 };
+    const expected = rollShop(run.seed);
+    const after = rerollShop(run);
+    expect(after.gold).toBe(5 - REROLL_COST);
+    expect(after.shop).toEqual(expected.offers);
+    expect(after.seed).toBe(expected.seed);
+  });
+
+  test("is deterministic: same state, same reroll", () => {
+    const run = { ...newRun(42), gold: 5 };
+    expect(rerollShop(run)).toEqual(rerollShop(run));
+  });
+
+  test("works with exactly enough gold and ends at 0", () => {
+    const run = { ...newRun(1), gold: REROLL_COST };
+    expect(rerollShop(run).gold).toBe(0);
+  });
+
+  test("without enough gold is blocked and changes nothing", () => {
+    const run = { ...newRun(1), gold: 0 };
+    expect(rerollBlocker(run)).toBe("Not enough gold");
+    expect(rerollShop(run)).toBe(run);
   });
 });
