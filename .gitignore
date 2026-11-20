@@ -23,4 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
+# Claude Code: persönliche Einstellungen nicht committen
+.claude/settings.local.json
+CLAUDE.local.md
+
 pnpm-lock.yaml

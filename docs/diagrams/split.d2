@@ -1,0 +1,69 @@
+grid-columns: 1
+grid-gap: 24
+
+classes: {
+  fe: { style: { fill: "#dbeafe"; stroke: "#2563eb"; font-color: "#1e3a8a" } }
+  be: { style: { fill: "#ffedd5"; stroke: "#ea580c"; font-color: "#7c2d12" } }
+  none: { style: { fill: "#f3f4f6"; stroke: "#9ca3af"; font-color: "#6b7280"; stroke-dash: 4 } }
+  shared: { style: { fill: "#ede9fe"; stroke: "#7c3aed"; font-color: "#4c1d95" } }
+}
+
+legend: Legende {
+  grid-columns: 4
+  f: Frontend (src/) { class: fe }
+  b: Backend (server/) { class: be }
+  s: Vertrag FE<->BE { class: shared }
+  n: nichts nötig { class: none }
+}
+
+reqs: Anforderungen {
+  grid-columns: 2
+  grid-gap: 20
+
+  b1: "B1 Shop-Wirtschaft · 10%" {
+    fe: "FE\nverkaufen (Preis/2 abgerundet), Reroll 1🪙\natomare Regeln in run.ts\nButtons + Grund, warum gesperrt" { class: fe }
+    be: "BE\nkeine Änderung" { class: none }
+  }
+  b2: "B2 Backpack anordnen · 15%" {
+    fe: "FE\nAuswahl, Move/Swap, mögliche Ziele,\nAbbrechen (Backpack.tsx + run.ts)" { class: fe }
+    be: "BE\nkeine Änderung" { class: none }
+  }
+  b3: "B3 Poison / Heal · 15%" {
+    fe: "FE\nbattle.ts, items.ts (≥3 Items je Effekt),\nShop, BattleView, Log, Rules, Tooltips" { class: fe }
+    be: "BE (klein, optional)\nopponents.js: Gegner dürfen Items nutzen" { class: be }
+  }
+  b4: "B4 Sets + Burn · 20%" {
+    fe: "FE\n≥2 Sets (Fire), Bonus ab 2 Items, Burn,\nBadges, aktive Boni, Rules, Log" { class: fe }
+    be: "BE (klein)\nopponents.js: Gegner profitieren von Sets" { class: be }
+  }
+  b5: "B5 Matchmaking · 10%" {
+    fe: "FE\nSuch-ID + Runden-Guard, Phase nach Fehler,\nDoppelstart sperren, Fehlermeldung + Retry" { class: fe }
+    be: "BE\nkeine Änderung\n(latency/fail-Parameter zum Testen vorhanden)" { class: none }
+  }
+  b6: "B6 Save / Resume · 10%" {
+    fe: "FE\nlocalStorage, Validierung, Fallback,\nPolicy bei Refresh in Suche/Replay" { class: fe }
+    be: "BE\nkeine Änderung" { class: none }
+  }
+  b7: "B7 Hall of Fame · 20%" {
+    fe: "FE\nName am Run-Ende, eigene Seite,\nLaden/Leer/Fehler, Retry, kein Doppel-Submit" { class: fe }
+    be: "BE\nPOST + GET, Validierung (plausibel?),\nRanking, In-Memory, docs/API.md" { class: be }
+    api: "Vertrag: Endpoints, Felder,\nFehlerformat, Ranking-Regel" { class: shared }
+    fe -> api
+    be -> api
+  }
+  nf: "Qualitätsziele" {
+    both: "beide: Ziele wählen, begründen,\nevaluieren, mündlich verteidigen" { class: shared }
+  }
+}
+
+summary: "Einschätzung (Schätzung, kein Messwert)" {
+  a: "Backend-Anteil: B7 (Server) + kleine Gegner-Änderungen\n≈ 20–25 % der Arbeit" { class: be }
+  b: "Frontend-Anteil: alles andere ≈ 75–80 %\n→ reine FE/BE-Teilung ist stark unausgewogen" { class: fe }
+}
+
+hot: "Konfliktstellen bei paralleler Arbeit" {
+  a: "types.ts, battle.ts, items.ts\n(B3 + B4 gleichzeitig)" { class: none }
+  b: "run.ts, Backpack.tsx\n(B1 + B2)" { class: none }
+  c: "game.ts, ShopPage.tsx, GameProvider.tsx\n(B5 + B6)" { class: none }
+  d: "UI-Redesign berührt fast alle Komponenten" { class: none }
+}

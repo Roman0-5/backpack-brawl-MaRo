@@ -1,0 +1,52 @@
+direction: right
+
+classes: {
+  done: { style: { fill: "#d1fae5"; stroke: "#059669"; font-color: "#064e3b" } }
+  part: { style: { fill: "#fef3c7"; stroke: "#d97706"; font-color: "#78350f" } }
+  todo: { style: { fill: "#fee2e2"; stroke: "#dc2626"; font-color: "#7f1d1d"; stroke-dash: 4 } }
+}
+
+legend: Legende {
+  d: "existiert, bleibt" { class: done }
+  p: "existiert, wird erweitert / repariert (B#)" { class: part }
+  t: "neu (B#)" { class: todo }
+}
+
+browser: Browser (React + Vite) {
+  pages: Pages {
+    start: StartPage { class: done }
+    shop: "ShopPage\nB5: Such-Guard, Fehler-Reset\nB1: Verkaufen/Reroll-Buttons" { class: part }
+    battle: "BattlePage\nB3/B4: Status-Anzeige" { class: part }
+    result: "ResultPage\nB7: Name + Submit" { class: part }
+    hof: "HallOfFamePage\nB7" { class: todo }
+  }
+  state: State {
+    provider: "GameProvider\n(nur useState)\nB6: Save laden/schreiben" { class: part }
+    save: "Save-Modul (localStorage)\nB6: Validierung + Fallback" { class: todo }
+  }
+  rules: Regeln (reines TS, ohne React) {
+    run: "run.ts\nkaufen\nB1: verkaufen, reroll" { class: part }
+    shopts: "shop.ts\nseeded RNG" { class: done }
+    game: "game.ts\nPhasen\nB5: Such-ID, Runden-Guard" { class: part }
+    battle: "battle.ts\nDamage + Block\nB3: Poison, Heal\nB4: Burn, Set-Boni" { class: part }
+    items: "items.ts\n6 Items\nB3: ≥3 Items je Effekt\nB4: ≥2 Sets (Fire), je ≥3 Items" { class: part }
+    arrange: "Backpack verschieben / swap\nB2" { class: todo }
+  }
+  tests: "Vitest-Tests\n(0 vorhanden)" { class: todo }
+}
+
+server: Express API {
+  health: "GET /api/health" { class: done }
+  opp: "GET /api/opponents\nB3/B4: Gegner nutzen neue Items" { class: part }
+  runs: "POST / GET /api/runs\nB7: Validierung, Ranking,\nIn-Memory" { class: todo }
+}
+
+browser.pages.shop -> browser.rules.run
+browser.pages.shop -> browser.rules.game
+browser.pages.battle -> browser.rules.battle
+browser.rules.battle -> browser.rules.items
+browser.rules.game -> browser.state.provider
+browser.state.provider -> browser.state.save: B6 { style.stroke-dash: 4 }
+browser.pages.shop -> server.opp: fetchOpponent { style.stroke: "#d97706" }
+browser.pages.result -> server.runs: B7 { style.stroke-dash: 4; style.stroke: "#dc2626" }
+browser.pages.hof -> server.runs: B7 { style.stroke-dash: 4; style.stroke: "#dc2626" }
