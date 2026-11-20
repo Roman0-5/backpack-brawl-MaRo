@@ -5,7 +5,7 @@ Repository: [github.com/Roman0-5/backpack-brawl-MaRo](https://github.com/Roman0-
 
 ## Development Overview
 
-**Organisation:** Aufteilung nach Feature. Wer ein Feature übernimmt, baut Frontend und Backend davon selbst. Feature Branching Strategie wie z.B. `git branch b1-shop-economy`. Namen bitte in die Tabelle eintragen.
+**Organisation:** Aufteilung nach Feature. Wer ein Feature übernimmt, baut Frontend und Backend davon selbst. Feature Branching Strategie wie z.B. `git branch b1-shop-economy`. Namen bitte in die Tabelle eintragen. Feature-Branches gehen per Pull Request mit Merge-Commit nach `main` (kein Squash/Rebase), damit die Commit-Hashes als Belege gültig bleiben.
 
 **Dokumentation:** Zwei Ebenen. Jede Änderung wird in `docs/internal/CHANGES.md` als
 Problem → Ursache → Lösung → Warum festgehalten (Detail, inkl. Commit-Hash).
@@ -45,18 +45,18 @@ Mindestens drei. Je Entscheidung: Kontext, Alternativen, Wahl, Begründung, Bele
    - Wahl: Vitest-Unit-Tests nur für die reinen Regelmodule, als `*.test.ts` direkt neben dem getesteten Modul. Die UI wird manuell geprüft.
    - Begründung: Die Regeln sind reine Funktionen (Zustand rein, neuer Zustand raus), also ohne Browser und React schnell testbar. Tests belegen das Qualitätsziel Korrektheit und fangen Regressionen bei paralleler Arbeit. Die Ablage neben dem Code folgt der README-Konvention und zeigt sofort, welches Modul getestet ist. UI-Tests bräuchten zusätzliche Tools, der Aufwand lohnt sich in einer Woche nicht.
    - Trade-off: UI-Fehler (z. B. ein nicht gesperrter Button) finden die Tests nicht, die prüfen wir manuell.
-   - Beleg: _(Commit des ersten Tests, nach dem Merge eintragen)_
+   - Beleg: `3c4ab2f` (erster Test samt Fix), weitere Tests in `7a1cc4c`, `c2a3f0c`
 3. **Reroll würfelt deterministisch über den Seed im Run-Zustand.**
    - Kontext: B1 verlangt einen Reroll für 1 Gold. Das README legt fest, dass derselbe Seed dieselben Angebote liefert. B6 verlangt, dass ein Neuladen der Seite keinen kostenlosen Reroll bringt.
    - Alternativen: `Math.random()` beim Reroll; ein eigener Zufallsgenerator nur für Rerolls.
    - Wahl: `rerollShop` ruft `rollShop(state.seed)` auf und speichert den neuen Seed im Run-Zustand, genau wie der Shop-Wurf zu Rundenbeginn.
    - Begründung: Das Spiel bleibt reproduzierbar und testbar (der Test prüft die exakt erwarteten Angebote). Weil der Seed Teil des Zustands ist, liefert ein gespeicherter und neu geladener Run denselben Shop, ein Refresh bringt also keinen Gratis-Reroll. Es braucht keinen zusätzlichen Zustand.
    - Trade-off: Wer den Seed kennt, kann künftige Angebote vorhersagen. Für ein lokales Einzelspieler-Spiel ohne Wertung ist das unkritisch; relevant wird es erst, wenn die Hall of Fame (B7) Läufe vergleicht.
-   - Beleg: _(Commit der Reroll-Regel, nach dem Merge eintragen)_
+   - Beleg: `c2a3f0c` (Regel und Tests), `54303b9` (Button und Regeltext)
 
 ## AI Usage
 
-- Matthias: Claude für Analyse von Codebase und Architektur
+- Matthias: Claude (Chat) für Analyse von Codebase und Architektur, Priorisierung der Probleme, Erklärung von Ursache und Lösung.
 - Roman: Für den Anfang Claude Code benutzt um Diagramm der Codebase und Requirements generieren zu lassen.
 
 ## Laufendes Protokoll (Material fürs Diary)
@@ -68,6 +68,9 @@ Kurze Einträge mit Datum, Kurzerklärung, und Commit-Hash.
 | Datum      | Was / Warum                                                                                                                                                                    | Beleg        |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ |
 | 2026-11-20 | Anforderungen und Starter analysiert, Status- und Aufteilungsdiagramme erstellt, Aufteilung nach Feature beschlossen (zuerst Schicht erwogen, wegen Ungleichgewicht verworfen) | _(Commit)_ |
+| 2026-11-20 | Doku-Regel (`CHANGES.md` + Diary) und Teststrategie (Entscheidung 2) festgelegt | `38488ec`, `23a3a2b` |
+| 2026-11-20 | Versehentlicher Commit auf `main` per `git revert` zurückgenommen statt die gemeinsame Historie umzuschreiben | `631d0b4` |
+| 2026-11-20 | B1 umgesetzt: Fix voller Rucksack, Verkaufen, Reroll (Entscheidung 3), 12 Unit-Tests. Per PR #1 als Merge-Commit nach `main` | `3c4ab2f`, `7a1cc4c`, `13a4b2a`, `c2a3f0c`, `54303b9`, Merge `08dbc28` |
 
 ## Final Reflection und Lessons learned
 
