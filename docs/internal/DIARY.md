@@ -7,17 +7,23 @@ Repository: [github.com/Roman0-5/backpack-brawl-MaRo](https://github.com/Roman0-
 
 **Organisation:** Aufteilung nach Feature. Wer ein Feature übernimmt, baut Frontend und Backend davon selbst. Feature Branching Strategie wie z.B. `git branch b1-shop-economy`. Namen bitte in die Tabelle eintragen.
 
+**Dokumentation:** Zwei Ebenen. Jede Änderung wird in `docs/internal/CHANGES.md` als
+Problem → Ursache → Lösung → Warum festgehalten (Detail, inkl. Commit-Hash).
+Weitreichende Entscheidungen (Architektur, Spielregeln, Trade-offs) kommen zusätzlich
+unter „Important Decisions" in dieses Diary. So bleibt das Diary kurz, und jede
+Begründung ist trotzdem nachvollziehbar.
+
 **Zuständigkeiten:**
 
-| Feature                                            | Gewicht | Wer? |
-| -------------------------------------------------- | ------: | ---- |
-| B1 Shop-Wirtschaft (verkaufen, reroll)             |     10% |      |
-| B2 Backpack anordnen (verschieben, swap)           |     15% |      |
-| B3 Status-Effekte (Poison, Heal)                   |     15% |      |
-| B4 Item-Sets + Burn                                |     20% |      |
-| B5 Resilientes Matchmaking                         |     10% |      |
-| B6 Speichern und Fortsetzen                        |     10% |      |
-| B7 Hall of Fame                                    |     20% |      |
+| Feature                                            | Gewicht | Wer?      |
+| -------------------------------------------------- | ------: | ----      |
+| B1 Shop-Wirtschaft (verkaufen, reroll)             |     10% | Matthias  |
+| B2 Backpack anordnen (verschieben, swap)           |     15% |           |
+| B3 Status-Effekte (Poison, Heal)                   |     15% |           |
+| B4 Item-Sets + Burn                                |     20% |           |
+| B5 Resilientes Matchmaking                         |     10% |           |
+| B6 Speichern und Fortsetzen                        |     10% |           |
+| B7 Hall of Fame                                    |     20% |           |
 | Qualitätsziele (Auswahl, Begründung, Evaluation) |      – |      |
 | UI-Redesign                                        |      – |      |
 | Tests, `docs/API.md`                             |      – |      |
@@ -38,7 +44,7 @@ Mindestens drei. Je Entscheidung: Kontext, Alternativen, Wahl, Begründung, Bele
 
 ## AI Usage
 
-- Matthias:
+- Matthias: Claude für Analyso von Codebase und Architektur
 - Roman: Für den Anfang Claude Code benutzt um Diagramm der Codebase und Requirements generieren zu lassen.
 
 ## Laufendes Protokoll (Material fürs Diary)
