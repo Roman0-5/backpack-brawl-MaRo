@@ -86,3 +86,4 @@ export function applyBattleResult(state: RunState, winner: Side): RunState {
   const scored = winner === "player" ? { ...state, wins: state.wins + 1 } : { ...state, lives: state.lives - 1 };
   return runOutcome(scored) ? scored : startNextRound(scored);
 }
+
