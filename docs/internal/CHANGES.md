@@ -4,3 +4,4 @@ Pro Änderung: Problem → Ursache → Lösung → Warum, mit Commit-Hash (7 Zei
 
 | Datum | Req | Problem | Ursache | Lösung | Warum | Beleg |
 | ----- | --- | ------- | ------- | ------ | ----- | ----- |
+| 2026-11-20 | B1 | Kauf bei vollem Rucksack zog Gold ab, das Item ging verloren | `buyBlocker` prüfte keinen freien Slot; `firstFreeSlot` lieferte `-1`, `backpack[-1] = …` legt nur eine Eigenschaft am Array an statt einen Slot zu füllen | Neue Prüfung „Backpack full" in `buyBlocker`, vor „Not enough gold"; Test `run.test.ts` | Eine Regel schützt Button und Aktion zugleich (B1: „same rule protects the action"). Reihenfolge: Ein Grund, den Gold nicht löst, kommt zuerst, sonst führt die Meldung in die Irre | _(nach Merge)_ |
