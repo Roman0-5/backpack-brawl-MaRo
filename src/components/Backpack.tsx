@@ -1,13 +1,20 @@
 import { TICK_SECONDS } from "../battle";
 import { describeEffects, getItem } from "../items";
 import { BACKPACK_COLS } from "../shop";
+import { sellPrice } from "../run";
 import type { Backpack as BackpackSlots, ItemDef } from "../types";
 
 /** Hover text for a backpack slot: name, effects and cooldown. */
 const tooltip = (item: ItemDef) =>
   [item.name, ...describeEffects(item.effects).map(({ label }) => label), `⏱️ every ${item.cooldown * TICK_SECONDS}s`].join("\n");
 
-export function Backpack({ backpack }: { backpack: BackpackSlots }) {
+interface BackpackProps {
+  backpack: BackpackSlots;
+  /** Called with the slot index when the player sells that item. */
+  onSell: (slotIndex: number) => void;
+}
+
+export function Backpack({ backpack, onSell }: BackpackProps) {
   return (
     <section className="rounded-lg border border-panel-edge bg-panel p-4">
       <h2 className="font-display text-xl font-bold">🎒 Backpack</h2>
@@ -31,6 +38,14 @@ export function Backpack({ backpack }: { backpack: BackpackSlots }) {
                     {item.icon}
                   </span>
                   <span className="text-center text-xs leading-tight">{item.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => onSell(index)}
+                    aria-label={`Sell ${item.name} for ${sellPrice(item.id)} gold`}
+                    className="rounded bg-gold px-1.5 text-xs font-bold text-ink hover:brightness-110 disabled:bg-panel-edge disabled:text-muted"
+                  >
+                    Sell {sellPrice(item.id)} 🪙
+                  </button>
                 </>
               )}
             </li>
