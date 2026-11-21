@@ -97,11 +97,13 @@ export function BattleView({ battle, done, continueLabel, onSkip, onContinue }: 
 /** Hero actions | time | enemy actions. */
 const LOG_ROW = "grid grid-cols-[1fr_auto_1fr] items-start gap-2";
 
-/** Text colour per event: damage red, poison green, heal teal, everything else neutral. */
+/** Text colour per event: damage red, poison green, burn orange, heal teal, everything else neutral. */
 const EVENT_COLOUR: Partial<Record<BattleEventKind, string>> = {
   damage: "text-life",
   poison: "text-poison",
   poisonTick: "text-poison",
+  burn: "text-burn",
+  burnTick: "text-burn",
   heal: "text-heal",
 };
 
