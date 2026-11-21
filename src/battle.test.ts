@@ -1,6 +1,8 @@
 import { describe, expect, test } from "vitest";
-import { MAX_TICKS, POISON_DAMAGE_PER_STACK, POISON_INTERVAL, simulateBattle } from "./battle";
-import type { Fighter, FighterItem, ItemEffects } from "./types";
+import { buildOpponentFighter, buildPlayerFighter, MAX_TICKS, POISON_DAMAGE_PER_STACK, POISON_INTERVAL, simulateBattle } from "./battle";
+import { getItem } from "./items";
+import { SETS } from "./sets";
+import type { Backpack, Fighter, FighterItem, ItemEffects, Opponent } from "./types";
 
 /**
  * Eigene Test-Items statt Katalog-Items: Die Tests prüfen die Kampfregeln
@@ -11,7 +13,7 @@ function item(effects: ItemEffects, cooldown = 1): FighterItem {
 }
 
 function fighter(maxHp: number, items: FighterItem[] = [], name = "Fighter"): Fighter {
-  return { name, maxHp, items };
+  return { name, maxHp, items, sets: [] };
 }
 
 describe("damage", () => {
@@ -40,7 +42,7 @@ describe("block", () => {
   test("absorbs damage first, only the rest is lost from HP", () => {
     // Spieler wird vor dem Gegner aufgelöst: erst 4 Block, dann trifft der Gegner mit 6.
     const result = simulateBattle(fighter(40, [item({ block: 4 })]), fighter(40, [item({ damage: 6 }, 1)]));
-    expect(result.frames[1].player).toEqual({ hp: 38, maxHp: 40, block: 0, poison: 0 });
+    expect(result.frames[1].player).toEqual({ hp: 38, maxHp: 40, block: 0, poison: 0, burn: 0 });
     expect(result.events[1].message).toContain("(4 blocked)");
   });
 
@@ -109,6 +111,71 @@ describe("poison damage", () => {
   });
 });
 
+describe("burn stacks", () => {
+  // Die Frames zeigen den Stand nach dem Burn-Tick (schon abgeklungen), daher Stacks über das Log prüfen.
+  test("are added to the enemy, not to the fighter itself", () => {
+    const result = simulateBattle(fighter(40, [item({ burn: 3 }, 3)]), fighter(40));
+    expect(result.frames[2].opponent.burn).toBe(0); // vor dem ersten Feuern
+    expect(result.events.find((e) => e.kind === "burn")).toMatchObject({ tick: 3, target: "opponent", amount: 3 });
+    expect(result.frames[3].opponent.burn).toBe(1); // 3 Stacks, nach dem Tick die Hälfte (aufgerundet) weg
+    expect(result.frames[3].player.burn).toBe(0);
+  });
+
+  test("add up and are shown in the combat log with the new total", () => {
+    const result = simulateBattle(fighter(40, [item({ burn: 2 }, 3), item({ burn: 1 }, 3)]), fighter(40));
+    const second = result.events.filter((e) => e.kind === "burn")[1];
+    expect(second).toMatchObject({ source: "player", target: "opponent", amount: 1 });
+    expect(second.message).toContain("3 stacks");
+  });
+});
+
+describe("burn damage", () => {
+  // Burn-Item feuert genau einmal (Tick 20), danach kann man das Abklingen beobachten.
+  const once = (burn: number) => item({ burn }, 20);
+
+  test("hurts every tick for each stack, then halves until it wears off", () => {
+    const result = simulateBattle(fighter(40, [once(4)]), fighter(40));
+    const ticks = result.events.filter((e) => e.kind === "burnTick" && e.tick < 40); // Tick 40: nächster Treffer
+    expect(ticks.map((e) => e.tick)).toEqual([20, 21, 22]);
+    expect(ticks.map((e) => e.amount)).toEqual([4, 2, 1]);
+    expect(result.frames[23].opponent).toMatchObject({ hp: 33, burn: 0 });
+  });
+
+  test("stays bounded even when it is fed every tick", () => {
+    // +3 Stacks jeden Tick: Bei festem Abbau von 1 würde Burn endlos wachsen.
+    const result = simulateBattle(fighter(40, [item({ burn: 3 })]), fighter(1000));
+    const most = Math.max(...result.frames.map((f) => f.opponent.burn));
+    expect(most).toBeLessThanOrEqual(3);
+  });
+
+  test("is absorbed by block first", () => {
+    const result = simulateBattle(fighter(40, [once(4)]), fighter(40, [item({ block: 3 }, 20)]));
+    const first = result.events.find((e) => e.kind === "burnTick");
+    expect(first?.message).toContain("3 blocked");
+    expect(result.frames[20].opponent).toMatchObject({ hp: 39, block: 0 });
+  });
+
+  test("deals more damage than poison with the same stacks in the same time", () => {
+    const burned = simulateBattle(fighter(40, [once(4)]), fighter(40));
+    const poisoned = simulateBattle(fighter(40, [item({ poison: 4 }, 20)]), fighter(40));
+    // Erste Sekunde nach dem Treffer (Tick 20 und 21).
+    expect(burned.frames[21].opponent.hp).toBeLessThan(poisoned.frames[21].opponent.hp);
+  });
+
+  test("is logged for the side that set the fire, without an item", () => {
+    const result = simulateBattle(fighter(40, [once(2)]), fighter(40));
+    const first = result.events.find((e) => e.kind === "burnTick");
+    expect(first).toMatchObject({ source: "player", target: "opponent" });
+    expect(first?.itemId).toBeUndefined();
+  });
+
+  test("can knock a fighter out", () => {
+    const result = simulateBattle(fighter(40, [item({ burn: 10 })]), fighter(10));
+    expect(result.winner).toBe("player");
+    expect(result.reason).toBe("knockout");
+  });
+});
+
 describe("heal", () => {
   test("restores the fighter's own HP", () => {
     // Tick 1: Gegner trifft (40 → 35). Tick 2: Heal +3 (→ 38), dann Treffer (→ 33).
@@ -168,5 +235,39 @@ describe("determinism", () => {
     const player = fighter(40, [item({ damage: 3 }, 4), item({ block: 2 }, 3)]);
     const opponent = fighter(30, [item({ damage: 5 }, 4)]);
     expect(simulateBattle(player, opponent)).toEqual(simulateBattle(player, opponent));
+  });
+});
+
+describe("set bonuses (built into the fighter)", () => {
+  // Echte Katalog-Items: Hier geht es gerade um die Set-Zugehörigkeit im Katalog.
+  const backpack = (...ids: string[]): Backpack => [...ids.map((itemId, i) => ({ uid: `u${i}`, itemId })), null, null, null, null, null, null].slice(0, 6);
+  const opponent = (...items: string[]): Opponent => ({ id: "test", name: "Test", icon: "🧪", hp: 40, round: 1, items });
+  const blockOf = (f: Fighter, itemId: string) => f.items.find((i) => i.itemId === itemId)?.effects.block;
+  const ironBonus = SETS.iron.bonus.block!;
+
+  test("the player gets the bonus with 2 different items of a set", () => {
+    const hero = buildPlayerFighter(backpack("oak-buckler", "pot-lid"));
+    expect(hero.sets).toEqual(["iron"]);
+    expect(blockOf(hero, "oak-buckler")).toBe(getItem("oak-buckler").effects.block! + ironBonus);
+    expect(blockOf(hero, "pot-lid")).toBe(getItem("pot-lid").effects.block! + ironBonus);
+  });
+
+  test("opponents get exactly the same bonus", () => {
+    const hero = buildPlayerFighter(backpack("oak-buckler", "pot-lid"));
+    const enemy = buildOpponentFighter(opponent("oak-buckler", "pot-lid"));
+    expect(enemy.sets).toEqual(hero.sets);
+    expect(enemy.items.map((i) => i.effects)).toEqual(hero.items.map((i) => i.effects));
+  });
+
+  test("two copies of one item don't activate the set", () => {
+    const hero = buildPlayerFighter(backpack("pot-lid", "pot-lid"));
+    expect(hero.sets).toEqual([]);
+    expect(blockOf(hero, "pot-lid")).toBe(getItem("pot-lid").effects.block);
+  });
+
+  test("the catalog itself stays unchanged", () => {
+    const before = getItem("oak-buckler").effects.block;
+    buildPlayerFighter(backpack("oak-buckler", "pot-lid"));
+    expect(getItem("oak-buckler").effects.block).toBe(before);
   });
 });

@@ -1,7 +1,9 @@
 import { TICK_SECONDS, MAX_TICKS } from "../battle";
 import { getItem } from "../items";
-import { STATUS_HELP } from "../rules";
+import { describeSetBonus, STATUS_HELP } from "../rules";
 import type { BattleEvent, BattleEventKind, BattleReplay, Fighter, FighterSnapshot, Side } from "../types";
+import { SET_IDS, SET_THRESHOLD, setCounts } from "../sets";
+import { SetBadge } from "./SetBadge";
 
 interface BattleViewProps {
   battle: BattleReplay;
@@ -20,6 +22,9 @@ export function BattleView({ battle, done, continueLabel, onSkip, onContinue }: 
     .flatMap((f) => f.events)
     .reverse();
   const won = result.winner === "player";
+  // Timeout with exactly the same share of HP (cross-multiplied, no rounding): counts as a loss.
+  const last = result.frames[result.frames.length - 1];
+  const tie = result.reason === "timeout" && last.player.hp * last.opponent.maxHp === last.opponent.hp * last.player.maxHp;
 
   return (
     <section className="flex flex-col gap-4 rounded-lg border border-panel-edge bg-panel p-4">
@@ -46,7 +51,9 @@ export function BattleView({ battle, done, continueLabel, onSkip, onContinue }: 
           <p className="text-sm text-muted">
             {result.reason === "knockout"
               ? `${won ? opponent.name : "Your hero"} was knocked out.`
-              : `Time ran out — ${won ? "you" : opponent.name} kept the higher share of HP.`}{" "}
+              : tie
+                ? "Time ran out with both fighters at the same share of HP — a tie counts as your loss."
+                : `Time ran out — ${won ? "you" : opponent.name} kept the higher share of HP.`}{" "}
             {won ? "+1 win." : "−1 life."}
           </p>
           <button
@@ -91,16 +98,24 @@ export function BattleView({ battle, done, continueLabel, onSkip, onContinue }: 
 /** Hero actions | time | enemy actions. */
 const LOG_ROW = "grid grid-cols-[1fr_auto_1fr] items-start gap-2";
 
-/** Text colour per event: damage red, poison green, heal teal, everything else neutral. */
+/** Text colour per event: damage red, poison green, burn orange, heal teal, everything else neutral. */
 const EVENT_COLOUR: Partial<Record<BattleEventKind, string>> = {
   damage: "text-life",
   poison: "text-poison",
   poisonTick: "text-poison",
+  burn: "text-burn",
+  burnTick: "text-burn",
   heal: "text-heal",
 };
 
+/** Icon for events that no item caused (status damage). */
+const STATUS_ICON: Partial<Record<BattleEventKind, string>> = {
+  poisonTick: "☠️",
+  burnTick: "🔥",
+};
+
 function LogLine({ event }: { event: BattleEvent }) {
-  const icon = event.itemId ? getItem(event.itemId).icon : "☠️";
+  const icon = event.itemId ? getItem(event.itemId).icon : (STATUS_ICON[event.kind] ?? "❔");
   const byPlayer = event.source === "player";
   const text = (
     <span className={`flex gap-1.5 ${byPlayer ? "" : "flex-row-reverse text-right"} ${EVENT_COLOUR[event.kind] ?? ""}`}>
@@ -126,7 +141,7 @@ interface FighterPanelProps {
 }
 
 function FighterPanel({ side, icon, fighter, snapshot }: FighterPanelProps) {
-  const { hp, maxHp, block, poison } = snapshot;
+  const { hp, maxHp, block, poison, burn } = snapshot;
   const knockedOut = hp <= 0;
 
   return (
@@ -141,24 +156,66 @@ function FighterPanel({ side, icon, fighter, snapshot }: FighterPanelProps) {
         {fighter.name}
       </h3>
 
+      <FighterSets fighter={fighter} />
+
       <Bar label="HP" value={hp} max={maxHp} text={`${hp} / ${maxHp}`} colour="bg-life" help={STATUS_HELP.hp} />
       <Bar label="Block" value={block} max={maxHp} text={`🛡️ ${block}`} colour="bg-block" help={STATUS_HELP.block} />
 
-      <p title={STATUS_HELP.poison} className={`flex cursor-help justify-between text-xs ${poison > 0 ? "font-bold text-poison" : "text-muted"}`}>
-        <span>Poison</span>
-        <span className="font-mono" aria-label={`${poison} poison stacks`}>
-          ☠️ {poison}
-        </span>
-      </p>
+      <StatusRow label="Poison" icon="☠️" stacks={poison} colour="text-poison" help={STATUS_HELP.poison} />
+      <StatusRow label="Burn" icon="🔥" stacks={burn} colour="text-burn" help={STATUS_HELP.burn} />
 
       <ul className="flex flex-wrap gap-1" aria-label="Items">
-        {fighter.items.map((item, index) => (
-          <li key={index} title={item.name} className="rounded bg-ink/50 px-1.5 py-0.5 text-xl">
-            {item.icon}
-          </li>
-        ))}
+        {fighter.items.map((item, index) => {
+          const set = getItem(item.itemId).set;
+          return (
+            <li key={index} title={item.name} className="flex items-center gap-1 rounded bg-ink/50 px-1.5 py-0.5 text-xl">
+              {item.icon}
+              {set && <SetBadge set={set} compact />}
+            </li>
+          );
+        })}
       </ul>
     </article>
+  );
+}
+
+/**
+ * Sets of a fighter: active ones with their bonus, started ones with their progress.
+ */
+function FighterSets({ fighter }: { fighter: Fighter }) {
+  const counts = setCounts(fighter.items.map((item) => getItem(item.itemId)));
+  const started = SET_IDS.filter((set) => counts[set] > 0);
+  return (
+    <ul className="flex flex-col gap-1 text-xs" aria-label="Set bonuses">
+      {started.length === 0 && <li className="text-muted">No set items</li>}
+      {started.map((set) =>
+        fighter.sets.includes(set) ? (
+          <li key={set} className="flex flex-wrap items-center gap-1.5">
+            <SetBadge set={set} />
+            <span className="font-bold">✓ {describeSetBonus(set)}</span>
+          </li>
+        ) : (
+          <li key={set} className="flex flex-wrap items-center gap-1.5 text-muted">
+            <SetBadge set={set} />
+            <span>
+              {counts[set]}/{SET_THRESHOLD}, not active
+            </span>
+          </li>
+        ),
+      )}
+    </ul>
+  );
+}
+
+/** Stacks of a status effect; greyed out at 0, always shown so the layout doesn't jump. */
+function StatusRow({ label, icon, stacks, colour, help }: { label: string; icon: string; stacks: number; colour: string; help: string }) {
+  return (
+    <p title={help} className={`flex cursor-help justify-between text-xs ${stacks > 0 ? `font-bold ${colour}` : "text-muted"}`}>
+      <span>{label}</span>
+      <span className="font-mono" aria-label={`${stacks} ${label.toLowerCase()} stacks`}>
+        {icon} {stacks}
+      </span>
+    </p>
   );
 }
 

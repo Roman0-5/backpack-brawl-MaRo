@@ -1,4 +1,5 @@
 import { getItem } from "./items";
+import { activeSets, withSetBonuses } from "./sets";
 import { itemIdsOf } from "./shop";
 import type { Backpack, BattleEvent, BattleResult, Fighter, FighterItem, FighterSnapshot, Opponent, Side } from "./types";
 
@@ -11,14 +12,30 @@ export const HERO_BASE_HP = 40;
 export const POISON_INTERVAL = 2;
 /** HP lost per poison stack on every poison tick. */
 export const POISON_DAMAGE_PER_STACK = 1;
+/** Damage per burn stack on every tick (burn ticks every tick, twice as often as poison). */
+export const BURN_DAMAGE_PER_STACK = 1;
+/**
+ * Share of the burn stacks that burn out after every burn tick, rounded up.
+ * Proportional instead of a fixed number, so burn always wears off, however fast it is fed.
+ */
+export const BURN_DECAY_SHARE = 0.5;
 
-/** Turns a list of item ids into a fighter with the catalog values of each item. */
+/**
+ * Turns a list of item ids into a fighter: the catalog values of each item plus
+ * the bonuses of the fighter's active sets. Player and opponents are both built
+ * here, so set bonuses apply to both alike; the battle itself knows nothing about sets.
+ */
 export function buildFighter(itemIds: string[], baseHp: number, name = "Fighter"): Fighter {
-  const items: FighterItem[] = itemIds.map((id) => {
-    const def = getItem(id);
-    return { itemId: def.id, name: def.name, icon: def.icon, cooldown: def.cooldown, effects: { ...def.effects } };
-  });
-  return { name, maxHp: baseHp, items };
+  const defs = itemIds.map(getItem);
+  const sets = activeSets(defs);
+  const items: FighterItem[] = defs.map((def) => ({
+    itemId: def.id,
+    name: def.name,
+    icon: def.icon,
+    cooldown: def.cooldown,
+    effects: withSetBonuses(def.effects, sets),
+  }));
+  return { name, maxHp: baseHp, items, sets };
 }
 
 /** The player's fighter: every backpack item and the hero's base HP. */
@@ -36,6 +53,8 @@ interface FighterState {
   block: number;
   /** Poison stacks on this fighter; they never wear off during a battle. */
   poison: number;
+  /** Burn stacks on this fighter; they fade after every burn tick. */
+  burn: number;
   /** Ticks each item has charged towards its cooldown. */
   charge: number[];
 }
@@ -47,6 +66,7 @@ const snapshot = (s: FighterState): FighterSnapshot => ({
   maxHp: s.fighter.maxHp,
   block: s.block,
   poison: s.poison,
+  burn: s.burn,
 });
 
 const isDown = (s: FighterState) => s.hp <= 0;
@@ -59,7 +79,8 @@ const isDown = (s: FighterState) => s.hp <= 0;
  * 1. Each fighter charges all items by one tick; items whose charge reaches their cooldown fire.
  * 2. Fired items resolve (player first, then opponent). Both sides fire "simultaneously":
  *    which items fire is decided before any effect is applied.
- * 3. Every `POISON_INTERVAL` ticks, poison hurts both fighters at once (ignoring block).
+ * 3. Status effects hurt both fighters at once: every `POISON_INTERVAL` ticks poison (ignoring block),
+ *    then every tick burn (block absorbs it first; afterwards `BURN_DECAY_SHARE` of the stacks burn out).
  * After step 3 the battle ends if someone is down; if both are down, the player loses.
  * After `MAX_TICKS` the higher HP percentage wins; a tie is a player loss.
  */
@@ -96,6 +117,7 @@ export function simulateBattle(player: Fighter, opponent: Fighter): BattleResult
     if (tick % POISON_INTERVAL === 0) {
       for (const side of ["player", "opponent"] as const) applyPoison(state[side], side, emit);
     }
+    for (const side of ["player", "opponent"] as const) applyBurn(state[side], side, emit);
     winner = knockoutWinner();
 
     frames.push({ tick, player: snapshot(state.player), opponent: snapshot(state.opponent), events: tickEvents });
@@ -107,7 +129,7 @@ export function simulateBattle(player: Fighter, opponent: Fighter): BattleResult
 }
 
 function initState(fighter: Fighter): FighterState {
-  return { fighter, hp: fighter.maxHp, block: 0, poison: 0, charge: fighter.items.map(() => 0) };
+  return { fighter, hp: fighter.maxHp, block: 0, poison: 0, burn: 0, charge: fighter.items.map(() => 0) };
 }
 
 /** Advances one tick of cooldowns and returns the items that fire this tick. */
@@ -130,7 +152,7 @@ function resolveItem(
   side: Side,
   emit: (event: Omit<BattleEvent, "tick">) => void,
 ) {
-  const { damage, block, poison, heal } = item.effects;
+  const { damage, block, poison, heal, burn } = item.effects;
   const base = { source: side, itemId: item.itemId };
   const enemySide = other(side);
 
@@ -144,6 +166,10 @@ function resolveItem(
   if (poison) {
     enemy.poison += poison;
     emit({ ...base, target: enemySide, kind: "poison", amount: poison, message: `${item.name} poisons ${enemy.fighter.name} (+${poison}, ${enemy.poison} stacks)` });
+  }
+  if (burn) {
+    enemy.burn += burn;
+    emit({ ...base, target: enemySide, kind: "burn", amount: burn, message: `${item.name} sets ${enemy.fighter.name} on fire (+${burn}, ${enemy.burn} stacks)` });
   }
   if (block) {
     self.block += block;
@@ -165,6 +191,20 @@ function applyPoison(s: FighterState, side: Side, emit: (event: Omit<BattleEvent
   s.hp -= damage;
   // Source is the side that applied the poison, so the log shows it in their column.
   emit({ source: other(side), target: side, kind: "poisonTick", amount: damage, message: `Poison deals ${damage} to ${s.fighter.name} (${s.poison} stacks)` });
+}
+
+/** Burn damage for one fighter: per stack, block absorbs it first; then the burn decays. */
+function applyBurn(s: FighterState, side: Side, emit: (event: Omit<BattleEvent, "tick">) => void) {
+  if (s.burn === 0) return;
+  const stacks = s.burn;
+  const damage = stacks * BURN_DAMAGE_PER_STACK;
+  const absorbed = Math.min(s.block, damage);
+  s.block -= absorbed;
+  s.hp -= damage - absorbed;
+  s.burn = stacks - Math.ceil(stacks * BURN_DECAY_SHARE);
+  const note = absorbed > 0 ? `, ${absorbed} blocked` : "";
+  // Source is the side that set the fire, so the log shows it in their column.
+  emit({ source: other(side), target: side, kind: "burnTick", amount: damage, message: `Burn deals ${damage} to ${s.fighter.name} (${stacks} stacks${note})` });
 }
 
 function timeoutWinner(player: FighterState, opponent: FighterState): Side {
