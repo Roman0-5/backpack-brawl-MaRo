@@ -66,7 +66,8 @@ const isDown = (s: FighterState) => s.hp <= 0;
  * 1. Each fighter charges all items by one tick; items whose charge reaches their cooldown fire.
  * 2. Fired items resolve (player first, then opponent). Both sides fire "simultaneously":
  *    which items fire is decided before any effect is applied.
- * 3. Every `POISON_INTERVAL` ticks, poison hurts both fighters at once (ignoring block).
+ * 3. Status effects hurt both fighters at once: every `POISON_INTERVAL` ticks poison (ignoring block),
+ *    then every tick burn (block absorbs it first; afterwards burn decays by `BURN_DECAY`).
  * After step 3 the battle ends if someone is down; if both are down, the player loses.
  * After `MAX_TICKS` the higher HP percentage wins; a tie is a player loss.
  */
@@ -103,6 +104,7 @@ export function simulateBattle(player: Fighter, opponent: Fighter): BattleResult
     if (tick % POISON_INTERVAL === 0) {
       for (const side of ["player", "opponent"] as const) applyPoison(state[side], side, emit);
     }
+    for (const side of ["player", "opponent"] as const) applyBurn(state[side], side, emit);
     winner = knockoutWinner();
 
     frames.push({ tick, player: snapshot(state.player), opponent: snapshot(state.opponent), events: tickEvents });
@@ -176,6 +178,20 @@ function applyPoison(s: FighterState, side: Side, emit: (event: Omit<BattleEvent
   s.hp -= damage;
   // Source is the side that applied the poison, so the log shows it in their column.
   emit({ source: other(side), target: side, kind: "poisonTick", amount: damage, message: `Poison deals ${damage} to ${s.fighter.name} (${s.poison} stacks)` });
+}
+
+/** Burn damage for one fighter: per stack, block absorbs it first; then the burn decays. */
+function applyBurn(s: FighterState, side: Side, emit: (event: Omit<BattleEvent, "tick">) => void) {
+  if (s.burn === 0) return;
+  const stacks = s.burn;
+  const damage = stacks * BURN_DAMAGE_PER_STACK;
+  const absorbed = Math.min(s.block, damage);
+  s.block -= absorbed;
+  s.hp -= damage - absorbed;
+  s.burn = Math.max(0, stacks - BURN_DECAY);
+  const note = absorbed > 0 ? `, ${absorbed} blocked` : "";
+  // Source is the side that set the fire, so the log shows it in their column.
+  emit({ source: other(side), target: side, kind: "burnTick", amount: damage, message: `Burn deals ${damage} to ${s.fighter.name} (${stacks} stacks${note})` });
 }
 
 function timeoutWinner(player: FighterState, opponent: FighterState): Side {

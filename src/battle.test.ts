@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { MAX_TICKS, POISON_DAMAGE_PER_STACK, POISON_INTERVAL, simulateBattle } from "./battle";
+import { BURN_DECAY, MAX_TICKS, POISON_DAMAGE_PER_STACK, POISON_INTERVAL, simulateBattle } from "./battle";
 import type { Fighter, FighterItem, ItemEffects } from "./types";
 
 /**
@@ -110,19 +110,60 @@ describe("poison damage", () => {
 });
 
 describe("burn stacks", () => {
+  // Die Frames zeigen den Stand nach dem Burn-Tick (schon abgeklungen), daher Stacks über das Log prüfen.
   test("are added to the enemy, not to the fighter itself", () => {
     const result = simulateBattle(fighter(40, [item({ burn: 3 }, 3)]), fighter(40));
     expect(result.frames[2].opponent.burn).toBe(0); // vor dem ersten Feuern
-    expect(result.frames[3].opponent.burn).toBe(3);
+    expect(result.events.find((e) => e.kind === "burn")).toMatchObject({ tick: 3, target: "opponent", amount: 3 });
+    expect(result.frames[3].opponent.burn).toBe(3 - BURN_DECAY);
     expect(result.frames[3].player.burn).toBe(0);
   });
 
   test("add up and are shown in the combat log with the new total", () => {
     const result = simulateBattle(fighter(40, [item({ burn: 2 }, 3), item({ burn: 1 }, 3)]), fighter(40));
-    expect(result.frames[3].opponent.burn).toBe(3);
     const second = result.events.filter((e) => e.kind === "burn")[1];
     expect(second).toMatchObject({ source: "player", target: "opponent", amount: 1 });
     expect(second.message).toContain("3 stacks");
+  });
+});
+
+describe("burn damage", () => {
+  // Burn-Item feuert genau einmal (Tick 20), danach kann man das Abklingen beobachten.
+  const once = (burn: number) => item({ burn }, 20);
+
+  test("hurts every tick for each stack, then decays until it wears off", () => {
+    const result = simulateBattle(fighter(40, [once(4)]), fighter(40));
+    const ticks = result.events.filter((e) => e.kind === "burnTick" && e.tick < 40); // Tick 40: nächster Treffer
+    expect(ticks.map((e) => e.tick)).toEqual([20, 21, 22, 23]);
+    expect(ticks.map((e) => e.amount)).toEqual([4, 3, 2, 1]);
+    expect(result.frames[24].opponent).toMatchObject({ hp: 30, burn: 0 });
+  });
+
+  test("is absorbed by block first", () => {
+    const result = simulateBattle(fighter(40, [once(4)]), fighter(40, [item({ block: 3 }, 20)]));
+    const first = result.events.find((e) => e.kind === "burnTick");
+    expect(first?.message).toContain("3 blocked");
+    expect(result.frames[20].opponent).toMatchObject({ hp: 39, block: 0 });
+  });
+
+  test("deals more damage than poison with the same stacks in the same time", () => {
+    const burned = simulateBattle(fighter(40, [once(4)]), fighter(40));
+    const poisoned = simulateBattle(fighter(40, [item({ poison: 4 }, 20)]), fighter(40));
+    // Erste Sekunde nach dem Treffer (Tick 20 und 21).
+    expect(burned.frames[21].opponent.hp).toBeLessThan(poisoned.frames[21].opponent.hp);
+  });
+
+  test("is logged for the side that set the fire, without an item", () => {
+    const result = simulateBattle(fighter(40, [once(2)]), fighter(40));
+    const first = result.events.find((e) => e.kind === "burnTick");
+    expect(first).toMatchObject({ source: "player", target: "opponent" });
+    expect(first?.itemId).toBeUndefined();
+  });
+
+  test("can knock a fighter out", () => {
+    const result = simulateBattle(fighter(40, [item({ burn: 10 })]), fighter(10));
+    expect(result.winner).toBe("player");
+    expect(result.reason).toBe("knockout");
   });
 });
 

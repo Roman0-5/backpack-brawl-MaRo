@@ -72,7 +72,7 @@ export interface FighterSnapshot {
   burn: number;
 }
 
-export type BattleEventKind = "damage" | "block" | "poison" | "poisonTick" | "heal" | "burn";
+export type BattleEventKind = "damage" | "block" | "poison" | "poisonTick" | "heal" | "burn" | "burnTick";
 
 export interface BattleEvent {
   tick: number;
@@ -82,7 +82,7 @@ export interface BattleEvent {
   target: Side;
   kind: BattleEventKind;
   amount: number;
-  /** Item that triggered the event; missing for status damage like a poison tick. */
+  /** Item that triggered the event; missing for status damage like a poison or burn tick. */
   itemId?: string;
   message: string;
 }
