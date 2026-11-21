@@ -127,4 +127,6 @@ export interface GameState {
   battle: BattleReplay | null;
   /** Last opponent-search error, shown in the shop. */
   error: string | null;
+  /** Id of the running opponent search; only its response may start a battle. `null` outside a search. */
+  searchId: string | null;
 }

@@ -30,14 +30,18 @@ export function ShopPage() {
 
   // Once the opponent is found the phase becomes "battle" and RequireRoute redirects to the battle page.
   async function handleFindOpponent() {
+    // Cheap early exit; the real guard is startSearch on the current state.
     if (fightBlocker(game) !== null) return;
-    update(startSearch);
+    // Every click gets its own id. Only the answer to the search that is running may start a battle.
+    const searchId = crypto.randomUUID();
+    const round = run.round;
+    update((current) => startSearch(current, searchId));
     try {
-      const opponent = await fetchOpponent(run.round);
-      update((current) => startBattle(current, opponent));
+      const opponent = await fetchOpponent(round);
+      update((current) => startBattle(current, opponent, searchId));
     } catch (error) {
       const message = error instanceof Error ? error.message : "Opponent search failed.";
-      update((current) => searchFailed(current, message));
+      update((current) => searchFailed(current, searchId, message));
     }
   }
 
