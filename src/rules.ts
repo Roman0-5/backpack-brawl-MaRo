@@ -45,6 +45,7 @@ export const RULES: RuleSection[] = [
       `You start with ${START_GOLD} 🪙 and earn ${GOLD_PER_ROUND} 🪙 at the start of every new round. Unspent gold carries over.`,
       `The shop offers ${SHOP_SIZE} new items every round. Reroll all offers for ${REROLL_COST} 🪙 while shopping.`,
       `Bought items go to the first free slot of your ${BACKPACK_COLS}×${BACKPACK_ROWS} backpack. Sell an item for half its price (rounded down) to free its slot.`,
+      `Click an item, then another slot to move it there. On an occupied slot the two items swap. Moving is free.`,
       `Only items in your backpack fight. Their position doesn't matter.`,
     ],
   },

@@ -1,5 +1,17 @@
 import { describe, expect, test } from "vitest";
-import { buyBlocker, buyItem, newRun, rerollBlocker, rerollShop, REROLL_COST, sellBlocker, sellItem, sellPrice } from "./run";
+import {
+  buyBlocker,
+  buyItem,
+  moveBlocker,
+  moveItem,
+  newRun,
+  rerollBlocker,
+  rerollShop,
+  REROLL_COST,
+  sellBlocker,
+  sellItem,
+  sellPrice,
+} from "./run";
 import { rollShop } from "./shop";
 import type { RunState } from "./types";
 
@@ -79,5 +91,38 @@ describe("reroll", () => {
     const run = { ...newRun(1), gold: 0 };
     expect(rerollBlocker(run)).toBe("Not enough gold");
     expect(rerollShop(run)).toBe(run);
+  });
+});
+
+describe("move", () => {
+  test("moves an item to an empty slot and leaves the old slot empty", () => {
+    const run = runWith(["pot-lid", null, null, null, null, null], 4);
+    const after = moveItem(run, 0, 3);
+    expect(after.backpack).toEqual([null, null, null, run.backpack[0], null, null]);
+    expect(after.gold).toBe(4);
+  });
+
+  test("swaps two items when the target slot is occupied", () => {
+    const run = runWith(["pot-lid", "hunting-bow", null, null, null, null]);
+    const after = moveItem(run, 0, 1);
+    expect(after.backpack).toEqual([run.backpack[1], run.backpack[0], null, null, null, null]);
+  });
+
+  test("never loses or duplicates an item", () => {
+    const run = runWith(["pot-lid", "hunting-bow", null, "iron-cleaver", null, null]);
+    const uids = (state: RunState) => state.backpack.flatMap((slot) => (slot ? [slot.uid] : [])).sort();
+    expect(uids(moveItem(run, 0, 3))).toEqual(uids(run));
+    expect(uids(moveItem(run, 1, 5))).toEqual(uids(run));
+  });
+
+  test.each([
+    { from: 2, to: 0, reason: "Empty slot" },
+    { from: 0, to: 6, reason: "Invalid slot" },
+    { from: 0, to: -1, reason: "Invalid slot" },
+    { from: 0, to: 0, reason: "Same slot" },
+  ])("from $from to $to is blocked ($reason) and changes nothing", ({ from, to, reason }) => {
+    const run = runWith(["pot-lid", "hunting-bow", null, null, null, null]);
+    expect(moveBlocker(run, from, to)).toBe(reason);
+    expect(moveItem(run, from, to)).toBe(run);
   });
 });
