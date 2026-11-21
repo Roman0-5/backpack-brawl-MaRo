@@ -59,7 +59,8 @@ const isDown = (s: FighterState) => s.hp <= 0;
  * 1. Each fighter charges all items by one tick; items whose charge reaches their cooldown fire.
  * 2. Fired items resolve (player first, then opponent). Both sides fire "simultaneously":
  *    which items fire is decided before any effect is applied.
- * After step 2 the battle ends if someone is down; if both are down, the player loses.
+ * 3. Every `POISON_INTERVAL` ticks, poison hurts both fighters at once (ignoring block).
+ * After step 3 the battle ends if someone is down; if both are down, the player loses.
  * After `MAX_TICKS` the higher HP percentage wins; a tie is a player loss.
  */
 export function simulateBattle(player: Fighter, opponent: Fighter): BattleResult {
@@ -91,6 +92,9 @@ export function simulateBattle(player: Fighter, opponent: Fighter): BattleResult
     };
     for (const side of ["player", "opponent"] as const) {
       for (const item of fired[side]) resolveItem(item, state[side], state[other(side)], side, emit);
+    }
+    if (tick % POISON_INTERVAL === 0) {
+      for (const side of ["player", "opponent"] as const) applyPoison(state[side], side, emit);
     }
     winner = knockoutWinner();
 
@@ -152,6 +156,15 @@ function resolveItem(
     const note = healed < heal ? " (max HP)" : "";
     emit({ ...base, target: side, kind: "heal", amount: healed, message: `${item.name} heals ${self.fighter.name} for ${healed}${note}` });
   }
+}
+
+/** Poison damage for one fighter: per stack, straight to HP (block doesn't help). */
+function applyPoison(s: FighterState, side: Side, emit: (event: Omit<BattleEvent, "tick">) => void) {
+  if (s.poison === 0) return;
+  const damage = s.poison * POISON_DAMAGE_PER_STACK;
+  s.hp -= damage;
+  // Source is the side that applied the poison, so the log shows it in their column.
+  emit({ source: other(side), target: side, kind: "poisonTick", amount: damage, message: `Poison deals ${damage} to ${s.fighter.name} (${s.poison} stacks)` });
 }
 
 function timeoutWinner(player: FighterState, opponent: FighterState): Side {

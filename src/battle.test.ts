@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { MAX_TICKS, simulateBattle } from "./battle";
+import { MAX_TICKS, POISON_DAMAGE_PER_STACK, POISON_INTERVAL, simulateBattle } from "./battle";
 import type { Fighter, FighterItem, ItemEffects } from "./types";
 
 /**
@@ -69,6 +69,43 @@ describe("poison stacks", () => {
     const second = result.events.filter((e) => e.kind === "poison")[1];
     expect(second).toMatchObject({ source: "player", target: "opponent", amount: 2 });
     expect(second.message).toContain("4 stacks");
+  });
+});
+
+describe("poison damage", () => {
+  test(`hurts every ${POISON_INTERVAL} ticks for each stack, ignoring block`, () => {
+    // Gift-Item feuert im Poison-Takt; Gegner hat ständig Block, der nicht hilft.
+    const result = simulateBattle(fighter(40, [item({ poison: 3 }, POISON_INTERVAL)]), fighter(40, [item({ block: 4 })]));
+    const ticks = result.events.filter((e) => e.kind === "poisonTick").slice(0, 2);
+    expect(ticks.map((e) => e.tick)).toEqual([POISON_INTERVAL, 2 * POISON_INTERVAL]);
+    expect(ticks.map((e) => e.amount)).toEqual([3 * POISON_DAMAGE_PER_STACK, 6 * POISON_DAMAGE_PER_STACK]);
+    expect(result.frames[2 * POISON_INTERVAL].opponent.hp).toBe(40 - 9 * POISON_DAMAGE_PER_STACK);
+    expect(result.frames[2 * POISON_INTERVAL].opponent.block).toBe(4 * 2 * POISON_INTERVAL);
+  });
+
+  test("does nothing between poison ticks", () => {
+    const result = simulateBattle(fighter(40, [item({ poison: 1 })]), fighter(40));
+    expect(result.frames[1].opponent).toMatchObject({ hp: 40, poison: 1 });
+  });
+
+  test("is logged for the side that applied it, without an item", () => {
+    const result = simulateBattle(fighter(40, [item({ poison: 2 })]), fighter(40));
+    const first = result.events.find((e) => e.kind === "poisonTick");
+    expect(first).toMatchObject({ source: "player", target: "opponent" });
+    expect(first?.itemId).toBeUndefined();
+  });
+
+  test("can knock a fighter out", () => {
+    const result = simulateBattle(fighter(40, [item({ poison: 5 })]), fighter(10));
+    expect(result.winner).toBe("player");
+    expect(result.reason).toBe("knockout");
+  });
+
+  test("hurts both fighters at once; if both fall, the player loses", () => {
+    const result = simulateBattle(fighter(10, [item({ poison: 10 })]), fighter(10, [item({ poison: 10 })]));
+    expect(result.frames.at(-1)?.player.hp).toBe(0);
+    expect(result.frames.at(-1)?.opponent.hp).toBe(0);
+    expect(result.winner).toBe("opponent");
   });
 });
 
