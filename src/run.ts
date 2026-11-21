@@ -80,6 +80,25 @@ export function rerollShop(state: RunState): RunState {
   return { ...state, gold: state.gold - REROLL_COST, seed: roll.seed, shop: roll.offers };
 }
 
+/** Why the item in `from` can't be moved to `to` right now, or `null` if it can. */
+export function moveBlocker(state: RunState, from: number, to: number): string | null {
+  if (!state.backpack[from]) return "Empty slot";
+  if (!Number.isInteger(to) || to < 0 || to >= state.backpack.length) return "Invalid slot";
+  if (from === to) return "Same slot";
+  return null;
+}
+
+/**
+ * Moves the item in `from` to `to`. If `to` is occupied, the two items swap places.
+ * Free of charge; unchanged state if not allowed.
+ */
+export function moveItem(state: RunState, from: number, to: number): RunState {
+  if (moveBlocker(state, from, to) !== null) return state;
+  const backpack = [...state.backpack];
+  [backpack[from], backpack[to]] = [backpack[to], backpack[from]];
+  return { ...state, backpack };
+}
+
 export type RunOutcome = "victory" | "defeat";
 
 /** `victory` / `defeat` once the run is over, otherwise `null`. */
