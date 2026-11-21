@@ -15,18 +15,18 @@ Begründung ist trotzdem nachvollziehbar.
 
 **Zuständigkeiten:**
 
-| Feature                                            | Gewicht | Wer?      |
-| -------------------------------------------------- | ------: | ----      |
-| B1 Shop-Wirtschaft (verkaufen, reroll)             |     10% | Matthias  |
-| B2 Backpack anordnen (verschieben, swap)           |     15% | Matthias  |
-| B3 Status-Effekte (Poison, Heal)                   |     15% |           |
-| B4 Item-Sets + Burn                                |     20% |           |
-| B5 Resilientes Matchmaking                         |     10% |           |
-| B6 Speichern und Fortsetzen                        |     10% |           |
-| B7 Hall of Fame                                    |     20% |           |
-| Qualitätsziele (Auswahl, Begründung, Evaluation) |      – |      |
-| UI-Redesign                                        |      – |      |
-| Tests, `docs/API.md`                             |      – |      |
+| Feature                                            | Gewicht | Wer?     |
+| -------------------------------------------------- | ------: | -------- |
+| B1 Shop-Wirtschaft (verkaufen, reroll)             |     10% | Matthias |
+| B2 Backpack anordnen (verschieben, swap)           |     15% | Matthias |
+| B3 Status-Effekte (Poison, Heal)                   |     15% | Roman    |
+| B4 Item-Sets + Burn                                |     20% | Roman    |
+| B5 Resilientes Matchmaking                         |     10% | Matthias |
+| B6 Speichern und Fortsetzen                        |     10% | Matthias |
+| B7 Hall of Fame                                    |     20% | Roman    |
+| Qualitätsziele (Auswahl, Begründung, Evaluation) |      – |          |
+| UI-Redesign                                        |      – |          |
+| Tests, `docs/API.md`                             |      – |          |
 
 **Nicht umgesetzte Requirements:** _(am Ende ausfüllen, sonst "keine")_
 
@@ -60,11 +60,18 @@ Mindestens drei. Je Entscheidung: Kontext, Alternativen, Wahl, Begründung, Bele
    - Begründung: Die Auswahl ist keine Spielregel und beeinflusst den Kampf nicht. Im Spielzustand würde sie mitgespeichert (B6) und müsste mitvalidiert werden. Die Regelfunktionen bleiben rein und testbar. Die Auswahl wird aus dem Rucksack abgeleitet, damit kein ungültiger Zustand entsteht (z. B. ausgewähltes, aber schon verkauftes Item).
    - Trade-off: Nach einem Seitenwechsel (z. B. Kampf) ist die Auswahl weg. Das ist gewollt, weil eine halbe Aktion nicht überleben soll.
    - Beleg: `77293e5`
+5. **Poison und Heal: feste Reihenfolge im Tick, Gift bleibt, kein Wiederbeleben.**
+   - Kontext: B3 lässt Takt und Werte offen, verlangt aber deterministische Regeln, die in der Oberfläche erklärt werden. B4 verlangt später Burn, das sich klar von Poison unterscheiden muss. Im Kampf werden die Items beider Seiten nacheinander aufgelöst (erst Spieler, dann Gegner), sollen aber als gleichzeitig gelten.
+   - Alternativen: Gift-Schaden direkt beim Feuern eines Items oder pro Stack mit eigenem Takt; Stacks, die mit der Zeit abklingen; Heilung auch bei 0 HP erlauben.
+   - Wahl: Jeder Tick läuft in drei Schritten: Items feuern → Gift trifft beide Seiten gleichzeitig (alle 1 s, 1 HP pro Stack, ohne Block) → K.o.-Prüfung. Stacks bleiben bis Kampfende. Wer bei ≤ 0 HP ist, wird nicht mehr geheilt.
+   - Begründung: Der Ausgang hängt nicht davon ab, wer zuerst aufgelöst wird. Ohne die Regel „kein Wiederbeleben" könnte der Gegner als Zweiter ein K.o. im selben Tick wegheilen, der Spieler aber nie. Gift, das nicht abklingt, ist der klare Kontrast zu Burn (stärker, aber abklingend), so lassen sich beide Effekte in einem Satz erklären. Ein gemeinsamer Takt an der Kampfuhr ist einfacher zu erklären und zu testen als ein Takt pro Stack. Alle Werte sind Konstanten, aus denen auch Regeltext und Tooltips entstehen.
+   - Trade-off: Gift wird in langen Kämpfen sehr stark, weil sich die Stacks aufaddieren. Das gleichen längere Cooldowns der Gift-Items aus, per Simulation geprüft.
+   - Beleg: `19f2879` (Heal), `80b04e1`, `776ecf0` (Poison), `a561565` (Regeltext)
 
 ## AI Usage
 
 - Matthias: Claude (Chat) für Analyse von Codebase und Architektur, Priorisierung der Probleme, Erklärung von Ursache und Lösung sowie als Code-Vorlage für B1 und B2. Jede Änderung selbst geprüft (Unit-Tests, manueller Test im Browser), Entscheidungen begründet und mit Roman abgestimmt.
-- Roman: Für den Anfang Claude Code benutzt um Diagramm der Codebase und Requirements generieren zu lassen.
+- Roman: Für den Anfang Claude Code benutzt um Diagramm der Codebase und Requirements generieren zu lassen. Für B3 Claude Code als Pair-Programmer: Regeln und Werte gemeinsam festgelegt, dann Umsetzung in kleinen Schritten (ein Schritt = ein Commit), jeweils mit Tests. Jeden Schritt selbst geprüft (Diff, Lint, Tests, Build), selbst committet und am Ende manuell im Browser getestet. Die Balance der neuen Items und Gegner per Simulation prüfen lassen.
 
 ## Laufendes Protokoll (Material fürs Diary)
 
@@ -72,13 +79,14 @@ Kurze Einträge mit Datum, Kurzerklärung, und Commit-Hash.
 
 > **Hinweis zu den Belegen:** Der Hash verweist auf den Commit mit der eigentlichen Arbeit, nicht auf den Diary-Commit, da ein Commit seinen eigenen Hash nicht enthalten kann. Das Diary wird direkt auf `main` in separaten `docs:`-Commits gepflegt. Hashes werden erst nach dem Merge nach `main` eingetragen (Squash/Rebase ändern Hashes) und auf 7 Zeichen gekürzt (`git log --oneline`).
 
-| Datum      | Was / Warum                                                                                                                                                                    | Beleg        |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ |
-| 2026-11-20 | Anforderungen und Starter analysiert, Status- und Aufteilungsdiagramme erstellt, Aufteilung nach Feature beschlossen (zuerst Schicht erwogen, wegen Ungleichgewicht verworfen) | _(Commit)_ |
-| 2026-11-20 | Doku-Regel (`CHANGES.md` + Diary) und Teststrategie (Entscheidung 2) festgelegt | `38488ec`, `23a3a2b` |
-| 2026-11-20 | Versehentlicher Commit auf `main` per `git revert` zurückgenommen statt die gemeinsame Historie umzuschreiben | `631d0b4` |
-| 2026-11-20 | B1 umgesetzt: Fix voller Rucksack, Verkaufen, Reroll (Entscheidung 3), 12 Unit-Tests. Per PR #1 als Merge-Commit nach `main` | `3c4ab2f`, `7a1cc4c`, `13a4b2a`, `c2a3f0c`, `54303b9`, Merge `08dbc28` |
-| 2026-11-21 | B2 umgesetzt: Verschieben/Tauschen als eine Operation, Auswahl als UI-Zustand (Entscheidung 4), 7 neue Unit-Tests (19 gesamt). Tests im ersten Commit vergessen und ohne Umschreiben der Historie nachgereicht. Per PR #2 nach `main` | `0152a68`, `eb8c4d0`, `77293e5`, Merge `e0eb3e9` |
+| Datum      | Was / Warum                                                                                                                                                                                                                             | Beleg                                                                              |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| 2026-11-20 | Anforderungen und Starter analysiert, Status- und Aufteilungsdiagramme erstellt, Aufteilung nach Feature beschlossen (zuerst Schicht erwogen, wegen Ungleichgewicht verworfen)                                                          | _(Commit)_                                                                       |
+| 2026-11-20 | Doku-Regel (`CHANGES.md` + Diary) und Teststrategie (Entscheidung 2) festgelegt                                                                                                                                                       | `38488ec`, `23a3a2b`                                                           |
+| 2026-11-20 | Versehentlicher Commit auf `main` per `git revert` zurückgenommen statt die gemeinsame Historie umzuschreiben                                                                                                                      | `631d0b4`                                                                        |
+| 2026-11-20 | B1 umgesetzt: Fix voller Rucksack, Verkaufen, Reroll (Entscheidung 3), 12 Unit-Tests. Per PR #1 als Merge-Commit nach `main`                                                                                                          | `3c4ab2f`, `7a1cc4c`, `13a4b2a`, `c2a3f0c`, `54303b9`, Merge `08dbc28` |
+| 2026-11-21 | B2 umgesetzt: Verschieben/Tauschen als eine Operation, Auswahl als UI-Zustand (Entscheidung 4), 7 neue Unit-Tests (19 gesamt). Tests im ersten Commit vergessen und ohne Umschreiben der Historie nachgereicht. Per PR #2 nach `main` | `0152a68`, `eb8c4d0`, `77293e5`, Merge `e0eb3e9`                           |
+| 2026-11-21 | B3 umgesetzt: zuerst Tests für die bestehenden Kampfregeln, dann Heal, Poison-Stacks und Poison-Tick (Entscheidung 5), je 3 Items pro Effekt, Gegner ab Runde 3, Poison-Zähler, Log-Farben, Regeltext. 24 neue Unit-Tests (43 gesamt). 12 kleine Commits, per PR #3 nach `main` | `53f0296` … `a561565`, Merge `e5f29c2` |
 
 ## Final Reflection und Lessons learned
 
