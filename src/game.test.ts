@@ -30,3 +30,15 @@ describe("failed search", () => {
     expect(searchFailed(shop, "late error")).toBe(shop);
   });
 });
+
+describe("running search", () => {
+  test("blocks a second search with a reason", () => {
+    const searching = startSearch(readyGame());
+    expect(fightBlocker(searching)).toBe("Search already running");
+  });
+
+  test("starting again while searching changes nothing", () => {
+    const searching = startSearch(readyGame());
+    expect(startSearch(searching)).toBe(searching);
+  });
+});

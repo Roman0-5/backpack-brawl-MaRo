@@ -21,6 +21,8 @@ export function updateRun(game: GameState, action: (run: RunState) => RunState):
 
 /** Why the player can't look for an opponent right now, or `null` if they can. */
 export function fightBlocker(game: GameState): string | null {
+  if (game.phase === "searching") return "Search already running";
+  if (game.phase !== "shop") return "Only possible in the shop";
   if (itemIdsOf(game.run.backpack).length === 0) return "Buy at least one item first";
   return null;
 }
