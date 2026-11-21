@@ -40,6 +40,8 @@ interface FighterState {
   block: number;
   /** Poison stacks on this fighter; they never wear off during a battle. */
   poison: number;
+  /** Burn stacks on this fighter; they fade after every burn tick. */
+  burn: number;
   /** Ticks each item has charged towards its cooldown. */
   charge: number[];
 }
@@ -51,6 +53,7 @@ const snapshot = (s: FighterState): FighterSnapshot => ({
   maxHp: s.fighter.maxHp,
   block: s.block,
   poison: s.poison,
+  burn: s.burn,
 });
 
 const isDown = (s: FighterState) => s.hp <= 0;
@@ -111,7 +114,7 @@ export function simulateBattle(player: Fighter, opponent: Fighter): BattleResult
 }
 
 function initState(fighter: Fighter): FighterState {
-  return { fighter, hp: fighter.maxHp, block: 0, poison: 0, charge: fighter.items.map(() => 0) };
+  return { fighter, hp: fighter.maxHp, block: 0, poison: 0, burn: 0, charge: fighter.items.map(() => 0) };
 }
 
 /** Advances one tick of cooldowns and returns the items that fire this tick. */
@@ -134,7 +137,7 @@ function resolveItem(
   side: Side,
   emit: (event: Omit<BattleEvent, "tick">) => void,
 ) {
-  const { damage, block, poison, heal } = item.effects;
+  const { damage, block, poison, heal, burn } = item.effects;
   const base = { source: side, itemId: item.itemId };
   const enemySide = other(side);
 
@@ -148,6 +151,10 @@ function resolveItem(
   if (poison) {
     enemy.poison += poison;
     emit({ ...base, target: enemySide, kind: "poison", amount: poison, message: `${item.name} poisons ${enemy.fighter.name} (+${poison}, ${enemy.poison} stacks)` });
+  }
+  if (burn) {
+    enemy.burn += burn;
+    emit({ ...base, target: enemySide, kind: "burn", amount: burn, message: `${item.name} sets ${enemy.fighter.name} on fire (+${burn}, ${enemy.burn} stacks)` });
   }
   if (block) {
     self.block += block;
