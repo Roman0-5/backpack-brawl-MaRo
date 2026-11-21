@@ -7,6 +7,9 @@ export const CATALOG: ItemDef[] = [
   { id: "oak-buckler", name: "Oak Buckler", icon: "🛡️", price: 3, cooldown: 5, effects: { block: 4 } },
   { id: "pot-lid", name: "Pot Lid", icon: "🍳", price: 2, cooldown: 3, effects: { block: 2 } },
   { id: "spiked-shield", name: "Spiked Shield", icon: "⚔️", price: 4, cooldown: 6, effects: { damage: 3, block: 3 } },
+  { id: "healing-herb", name: "Healing Herb", icon: "🌿", price: 2, cooldown: 4, effects: { heal: 3 } },
+  { id: "troll-blood", name: "Troll Blood", icon: "🩸", price: 4, cooldown: 8, effects: { heal: 8 } },
+  { id: "blessed-amulet", name: "Blessed Amulet", icon: "📿", price: 4, cooldown: 5, effects: { heal: 2, block: 2 } },
 ];
 
 const byId = new Map(CATALOG.map((item) => [item.id, item]));
