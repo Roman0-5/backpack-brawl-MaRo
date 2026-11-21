@@ -32,7 +32,8 @@ export async function fetchOpponent(round: number): Promise<Opponent> {
   return parseOpponent(await response.json().catch(() => null));
 }
 
-const isKnownItem = (id: unknown) => {
+/** Whether `id` names an item of the current catalog. */
+export const isKnownItem = (id: unknown) => {
   if (typeof id !== "string") return false;
   try {
     getItem(id);
