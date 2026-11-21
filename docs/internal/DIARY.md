@@ -53,6 +53,13 @@ Mindestens drei. Je Entscheidung: Kontext, Alternativen, Wahl, Begründung, Bele
    - Begründung: Das Spiel bleibt reproduzierbar und testbar (der Test prüft die exakt erwarteten Angebote). Weil der Seed Teil des Zustands ist, liefert ein gespeicherter und neu geladener Run denselben Shop, ein Refresh bringt also keinen Gratis-Reroll. Es braucht keinen zusätzlichen Zustand.
    - Trade-off: Wer den Seed kennt, kann künftige Angebote vorhersagen. Für ein lokales Einzelspieler-Spiel ohne Wertung ist das unkritisch; relevant wird es erst, wenn die Hall of Fame (B7) Läufe vergleicht.
    - Beleg: `c2a3f0c` (Regel und Tests), `54303b9` (Button und Regeltext)
+4. **Auswahl im Rucksack ist UI-Zustand, nicht Spielzustand.**
+   - Kontext: B2 verlangt Auswählen, Anzeigen möglicher Züge und Abbrechen. B6 speichert später den Spielzustand.
+   - Alternativen: Auswahl im `GameState` bzw. `RunState` führen; Auswahl in `ShopPage` halten.
+   - Wahl: `useState` direkt in `Backpack.tsx`. Die Regel `moveItem(state, from, to)` kennt nur zwei Slot-Indizes.
+   - Begründung: Die Auswahl ist keine Spielregel und beeinflusst den Kampf nicht. Im Spielzustand würde sie mitgespeichert (B6) und müsste mitvalidiert werden. Die Regelfunktionen bleiben rein und testbar. Die Auswahl wird aus dem Rucksack abgeleitet, damit kein ungültiger Zustand entsteht (z. B. ausgewähltes, aber schon verkauftes Item).
+   - Trade-off: Nach einem Seitenwechsel (z. B. Kampf) ist die Auswahl weg. Das ist gewollt, weil eine halbe Aktion nicht überleben soll.
+   - Beleg: _(Commit der Auswahl-UI, nach dem Merge eintragen)_
 
 ## AI Usage
 
