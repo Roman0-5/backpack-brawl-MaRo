@@ -18,7 +18,7 @@ Begründung ist trotzdem nachvollziehbar.
 | Feature                                            | Gewicht | Wer?      |
 | -------------------------------------------------- | ------: | ----      |
 | B1 Shop-Wirtschaft (verkaufen, reroll)             |     10% | Matthias  |
-| B2 Backpack anordnen (verschieben, swap)           |     15% |           |
+| B2 Backpack anordnen (verschieben, swap)           |     15% | Matthias  |
 | B3 Status-Effekte (Poison, Heal)                   |     15% |           |
 | B4 Item-Sets + Burn                                |     20% |           |
 | B5 Resilientes Matchmaking                         |     10% |           |
