@@ -20,6 +20,9 @@ export function BattleView({ battle, done, continueLabel, onSkip, onContinue }: 
     .flatMap((f) => f.events)
     .reverse();
   const won = result.winner === "player";
+  // Timeout with exactly the same share of HP (cross-multiplied, no rounding): counts as a loss.
+  const last = result.frames[result.frames.length - 1];
+  const tie = result.reason === "timeout" && last.player.hp * last.opponent.maxHp === last.opponent.hp * last.player.maxHp;
 
   return (
     <section className="flex flex-col gap-4 rounded-lg border border-panel-edge bg-panel p-4">
@@ -46,7 +49,9 @@ export function BattleView({ battle, done, continueLabel, onSkip, onContinue }: 
           <p className="text-sm text-muted">
             {result.reason === "knockout"
               ? `${won ? opponent.name : "Your hero"} was knocked out.`
-              : `Time ran out — ${won ? "you" : opponent.name} kept the higher share of HP.`}{" "}
+              : tie
+                ? "Time ran out with both fighters at the same share of HP — a tie counts as your loss."
+                : `Time ran out — ${won ? "you" : opponent.name} kept the higher share of HP.`}{" "}
             {won ? "+1 win." : "−1 life."}
           </p>
           <button
@@ -99,8 +104,14 @@ const EVENT_COLOUR: Partial<Record<BattleEventKind, string>> = {
   heal: "text-heal",
 };
 
+/** Icon for events that no item caused (status damage). */
+const STATUS_ICON: Partial<Record<BattleEventKind, string>> = {
+  poisonTick: "☠️",
+  burnTick: "🔥",
+};
+
 function LogLine({ event }: { event: BattleEvent }) {
-  const icon = event.itemId ? getItem(event.itemId).icon : "☠️";
+  const icon = event.itemId ? getItem(event.itemId).icon : (STATUS_ICON[event.kind] ?? "❔");
   const byPlayer = event.source === "player";
   const text = (
     <span className={`flex gap-1.5 ${byPlayer ? "" : "flex-row-reverse text-right"} ${EVENT_COLOUR[event.kind] ?? ""}`}>
