@@ -1,7 +1,8 @@
 import { BURN_DAMAGE_PER_STACK, BURN_DECAY_SHARE, HERO_BASE_HP, MAX_TICKS, POISON_DAMAGE_PER_STACK, POISON_INTERVAL, TICK_SECONDS } from "./battle";
 import { GOLD_PER_ROUND, REROLL_COST, START_GOLD, START_LIVES, WINS_TO_VICTORY } from "./run";
+import { SET_THRESHOLD, SETS } from "./sets";
 import { BACKPACK_COLS, BACKPACK_ROWS, SHOP_SIZE } from "./shop";
-import type { ItemEffects } from "./types";
+import type { ItemEffects, SetId } from "./types";
 
 /**
  * Player-facing explanations of the rules. Built from the game constants so
@@ -29,6 +30,19 @@ export const STATUS_HELP = {
   poison: `Poison stacks on this fighter: every ${POISON_SECONDS} s they cost ${POISON_DAMAGE_PER_STACK} HP each, ignoring block. They last the whole battle.`,
   timer: `After ${BATTLE_SECONDS} s the fighter with the higher share of HP wins; a tie counts as your loss.`,
 };
+
+/** What a set's bonus does, built from its data, e.g. "every burn item applies +1 burn". */
+export function describeSetBonus(set: SetId): string {
+  return Object.entries(SETS[set].bonus)
+    .map(([effect, extra]) => `every ${effect} item gets +${extra} ${effect}`)
+    .join(", ");
+}
+
+/** Tooltip per set badge. */
+export function setHelp(set: SetId): string {
+  const { icon, name } = SETS[set];
+  return `${icon} ${name} set: while a backpack holds ${SET_THRESHOLD} or more different ${name} items, ${describeSetBonus(set)}. Works for opponents too.`;
+}
 
 export interface RuleSection {
   title: string;

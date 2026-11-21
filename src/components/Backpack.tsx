@@ -2,12 +2,19 @@ import { useEffect, useState } from "react";
 import { TICK_SECONDS } from "../battle";
 import { describeEffects, getItem } from "../items";
 import { moveBlocker, sellPrice } from "../run";
+import { SETS } from "../sets";
 import { BACKPACK_COLS } from "../shop";
 import type { ItemDef, RunState } from "../types";
+import { SetBadge } from "./SetBadge";
 
-/** Hover text for a backpack slot: name, effects and cooldown. */
+/** Hover text for a backpack slot: name, set, effects and cooldown. */
 const tooltip = (item: ItemDef) =>
-  [item.name, ...describeEffects(item.effects).map(({ label }) => label), `⏱️ every ${item.cooldown * TICK_SECONDS}s`].join("\n");
+  [
+    item.name,
+    ...(item.set ? [`${SETS[item.set].icon} ${SETS[item.set].name} set`] : []),
+    ...describeEffects(item.effects).map(({ label }) => label),
+    `⏱️ every ${item.cooldown * TICK_SECONDS}s`,
+  ].join("\n");
 
 interface BackpackProps {
   run: RunState;
@@ -86,6 +93,7 @@ export function Backpack({ run, onSell, onMove }: BackpackProps) {
                       {item.icon}
                     </span>
                     <span className="text-center text-xs leading-tight">{item.name}</span>
+                    {item.set && <SetBadge set={item.set} compact />}
                   </>
                 )}
                 {isTarget && <span className="text-xs font-bold text-gold">{item ? "⇄ Swap" : "Move here"}</span>}
