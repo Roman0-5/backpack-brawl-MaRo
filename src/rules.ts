@@ -100,4 +100,13 @@ export const RULES: RuleSection[] = [
       `Set bonuses work the same for opponents. Your backpack shows how close you are to each bonus; in battle the active bonuses of both fighters are shown.`,
     ],
   },
+  {
+    title: "💾 Saving",
+    rules: [
+      `Your run is saved in this browser after every action. Reload or come back later and you continue where you left off.`,
+      `Reloading during an opponent search cancels the search; just start it again.`,
+      `Reloading during a battle doesn't undo it: the battle still counts and you see its end.`,
+      `A damaged or outdated save is discarded and you start fresh.`,
+    ],
+  },
 ];
