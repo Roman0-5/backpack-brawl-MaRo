@@ -30,8 +30,10 @@ export function startSearch(game: GameState): GameState {
   return { ...game, phase: "searching", error: null };
 }
 
+/** Ends a running search with an error: back to a usable shop that shows the message. */
 export function searchFailed(game: GameState, error: string): GameState {
-  return { ...game, error };
+  if (game.phase !== "searching") return game;
+  return { ...game, phase: "shop", error };
 }
 
 /** Simulates the battle against `opponent` and starts its replay at the first frame. */
