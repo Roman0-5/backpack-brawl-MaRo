@@ -1,7 +1,8 @@
 import { TICK_SECONDS, MAX_TICKS } from "../battle";
 import { getItem } from "../items";
-import { STATUS_HELP } from "../rules";
+import { describeSetBonus, STATUS_HELP } from "../rules";
 import type { BattleEvent, BattleEventKind, BattleReplay, Fighter, FighterSnapshot, Side } from "../types";
+import { SetBadge } from "./SetBadge";
 
 interface BattleViewProps {
   battle: BattleReplay;
@@ -137,7 +138,7 @@ interface FighterPanelProps {
 }
 
 function FighterPanel({ side, icon, fighter, snapshot }: FighterPanelProps) {
-  const { hp, maxHp, block, poison } = snapshot;
+  const { hp, maxHp, block, poison, burn } = snapshot;
   const knockedOut = hp <= 0;
 
   return (
@@ -152,24 +153,46 @@ function FighterPanel({ side, icon, fighter, snapshot }: FighterPanelProps) {
         {fighter.name}
       </h3>
 
-      <Bar label="HP" value={hp} max={maxHp} text={`${hp} / ${maxHp}`} colour="bg-life" help={STATUS_HELP.hp} />
-      <Bar label="Block" value={block} max={maxHp} text={`🛡️ ${block}`} colour="bg-block" help={STATUS_HELP.block} />
-
-      <p title={STATUS_HELP.poison} className={`flex cursor-help justify-between text-xs ${poison > 0 ? "font-bold text-poison" : "text-muted"}`}>
-        <span>Poison</span>
-        <span className="font-mono" aria-label={`${poison} poison stacks`}>
-          ☠️ {poison}
-        </span>
-      </p>
-
-      <ul className="flex flex-wrap gap-1" aria-label="Items">
-        {fighter.items.map((item, index) => (
-          <li key={index} title={item.name} className="rounded bg-ink/50 px-1.5 py-0.5 text-xl">
-            {item.icon}
+      <ul className="flex flex-col gap-1 text-xs" aria-label="Active set bonuses">
+        {fighter.sets.length === 0 && <li className="text-muted">No set bonus active</li>}
+        {fighter.sets.map((set) => (
+          <li key={set} className="flex flex-wrap items-center gap-1.5">
+            <SetBadge set={set} />
+            <span className="font-bold">✓ {describeSetBonus(set)}</span>
           </li>
         ))}
       </ul>
+
+      <Bar label="HP" value={hp} max={maxHp} text={`${hp} / ${maxHp}`} colour="bg-life" help={STATUS_HELP.hp} />
+      <Bar label="Block" value={block} max={maxHp} text={`🛡️ ${block}`} colour="bg-block" help={STATUS_HELP.block} />
+
+      <StatusRow label="Poison" icon="☠️" stacks={poison} colour="text-poison" help={STATUS_HELP.poison} />
+      <StatusRow label="Burn" icon="🔥" stacks={burn} colour="text-burn" help={STATUS_HELP.burn} />
+
+      <ul className="flex flex-wrap gap-1" aria-label="Items">
+        {fighter.items.map((item, index) => {
+          const set = getItem(item.itemId).set;
+          return (
+            <li key={index} title={item.name} className="flex items-center gap-1 rounded bg-ink/50 px-1.5 py-0.5 text-xl">
+              {item.icon}
+              {set && <SetBadge set={set} compact />}
+            </li>
+          );
+        })}
+      </ul>
     </article>
+  );
+}
+
+/** Stacks of a status effect; greyed out at 0, always shown so the layout doesn't jump. */
+function StatusRow({ label, icon, stacks, colour, help }: { label: string; icon: string; stacks: number; colour: string; help: string }) {
+  return (
+    <p title={help} className={`flex cursor-help justify-between text-xs ${stacks > 0 ? `font-bold ${colour}` : "text-muted"}`}>
+      <span>{label}</span>
+      <span className="font-mono" aria-label={`${stacks} ${label.toLowerCase()} stacks`}>
+        {icon} {stacks}
+      </span>
+    </p>
   );
 }
 

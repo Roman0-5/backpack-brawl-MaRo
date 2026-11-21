@@ -28,6 +28,7 @@ export const STATUS_HELP = {
   hp: "HP: reaching 0 is a knockout.",
   block: EFFECT_HELP.block,
   poison: `Poison stacks on this fighter: every ${POISON_SECONDS} s they cost ${POISON_DAMAGE_PER_STACK} HP each, ignoring block. They last the whole battle.`,
+  burn: `Burn stacks on this fighter: every ${TICK_SECONDS} s they deal ${BURN_DAMAGE_PER_STACK} damage each, block absorbs it first; then ${BURN_DECAY_SHARE * 100} % of them (rounded up) burn out.`,
   timer: `After ${BATTLE_SECONDS} s the fighter with the higher share of HP wins; a tie counts as your loss.`,
 };
 
