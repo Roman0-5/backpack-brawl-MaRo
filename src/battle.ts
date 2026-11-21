@@ -14,8 +14,11 @@ export const POISON_INTERVAL = 2;
 export const POISON_DAMAGE_PER_STACK = 1;
 /** Damage per burn stack on every tick (burn ticks every tick, twice as often as poison). */
 export const BURN_DAMAGE_PER_STACK = 1;
-/** Burn stacks lost after every burn tick. */
-export const BURN_DECAY = 1;
+/**
+ * Share of the burn stacks that burn out after every burn tick, rounded up.
+ * Proportional instead of a fixed number, so burn always wears off, however fast it is fed.
+ */
+export const BURN_DECAY_SHARE = 0.5;
 
 /**
  * Turns a list of item ids into a fighter: the catalog values of each item plus
@@ -77,7 +80,7 @@ const isDown = (s: FighterState) => s.hp <= 0;
  * 2. Fired items resolve (player first, then opponent). Both sides fire "simultaneously":
  *    which items fire is decided before any effect is applied.
  * 3. Status effects hurt both fighters at once: every `POISON_INTERVAL` ticks poison (ignoring block),
- *    then every tick burn (block absorbs it first; afterwards burn decays by `BURN_DECAY`).
+ *    then every tick burn (block absorbs it first; afterwards `BURN_DECAY_SHARE` of the stacks burn out).
  * After step 3 the battle ends if someone is down; if both are down, the player loses.
  * After `MAX_TICKS` the higher HP percentage wins; a tie is a player loss.
  */
@@ -198,7 +201,7 @@ function applyBurn(s: FighterState, side: Side, emit: (event: Omit<BattleEvent, 
   const absorbed = Math.min(s.block, damage);
   s.block -= absorbed;
   s.hp -= damage - absorbed;
-  s.burn = Math.max(0, stacks - BURN_DECAY);
+  s.burn = stacks - Math.ceil(stacks * BURN_DECAY_SHARE);
   const note = absorbed > 0 ? `, ${absorbed} blocked` : "";
   // Source is the side that set the fire, so the log shows it in their column.
   emit({ source: other(side), target: side, kind: "burnTick", amount: damage, message: `Burn deals ${damage} to ${s.fighter.name} (${stacks} stacks${note})` });

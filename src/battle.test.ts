@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { BURN_DECAY, MAX_TICKS, POISON_DAMAGE_PER_STACK, POISON_INTERVAL, simulateBattle } from "./battle";
+import { MAX_TICKS, POISON_DAMAGE_PER_STACK, POISON_INTERVAL, simulateBattle } from "./battle";
 import type { Fighter, FighterItem, ItemEffects } from "./types";
 
 /**
@@ -115,7 +115,7 @@ describe("burn stacks", () => {
     const result = simulateBattle(fighter(40, [item({ burn: 3 }, 3)]), fighter(40));
     expect(result.frames[2].opponent.burn).toBe(0); // vor dem ersten Feuern
     expect(result.events.find((e) => e.kind === "burn")).toMatchObject({ tick: 3, target: "opponent", amount: 3 });
-    expect(result.frames[3].opponent.burn).toBe(3 - BURN_DECAY);
+    expect(result.frames[3].opponent.burn).toBe(1); // 3 Stacks, nach dem Tick die Hälfte (aufgerundet) weg
     expect(result.frames[3].player.burn).toBe(0);
   });
 
@@ -131,12 +131,19 @@ describe("burn damage", () => {
   // Burn-Item feuert genau einmal (Tick 20), danach kann man das Abklingen beobachten.
   const once = (burn: number) => item({ burn }, 20);
 
-  test("hurts every tick for each stack, then decays until it wears off", () => {
+  test("hurts every tick for each stack, then halves until it wears off", () => {
     const result = simulateBattle(fighter(40, [once(4)]), fighter(40));
     const ticks = result.events.filter((e) => e.kind === "burnTick" && e.tick < 40); // Tick 40: nächster Treffer
-    expect(ticks.map((e) => e.tick)).toEqual([20, 21, 22, 23]);
-    expect(ticks.map((e) => e.amount)).toEqual([4, 3, 2, 1]);
-    expect(result.frames[24].opponent).toMatchObject({ hp: 30, burn: 0 });
+    expect(ticks.map((e) => e.tick)).toEqual([20, 21, 22]);
+    expect(ticks.map((e) => e.amount)).toEqual([4, 2, 1]);
+    expect(result.frames[23].opponent).toMatchObject({ hp: 33, burn: 0 });
+  });
+
+  test("stays bounded even when it is fed every tick", () => {
+    // +3 Stacks jeden Tick: Bei festem Abbau von 1 würde Burn endlos wachsen.
+    const result = simulateBattle(fighter(40, [item({ burn: 3 })]), fighter(1000));
+    const most = Math.max(...result.frames.map((f) => f.opponent.burn));
+    expect(most).toBeLessThanOrEqual(3);
   });
 
   test("is absorbed by block first", () => {
