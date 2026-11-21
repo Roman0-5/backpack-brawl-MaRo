@@ -2,6 +2,7 @@ import { TICK_SECONDS, MAX_TICKS } from "../battle";
 import { getItem } from "../items";
 import { describeSetBonus, STATUS_HELP } from "../rules";
 import type { BattleEvent, BattleEventKind, BattleReplay, Fighter, FighterSnapshot, Side } from "../types";
+import { SET_IDS, SET_THRESHOLD, setCounts } from "../sets";
 import { SetBadge } from "./SetBadge";
 
 interface BattleViewProps {
@@ -155,15 +156,7 @@ function FighterPanel({ side, icon, fighter, snapshot }: FighterPanelProps) {
         {fighter.name}
       </h3>
 
-      <ul className="flex flex-col gap-1 text-xs" aria-label="Active set bonuses">
-        {fighter.sets.length === 0 && <li className="text-muted">No set bonus active</li>}
-        {fighter.sets.map((set) => (
-          <li key={set} className="flex flex-wrap items-center gap-1.5">
-            <SetBadge set={set} />
-            <span className="font-bold">✓ {describeSetBonus(set)}</span>
-          </li>
-        ))}
-      </ul>
+      <FighterSets fighter={fighter} />
 
       <Bar label="HP" value={hp} max={maxHp} text={`${hp} / ${maxHp}`} colour="bg-life" help={STATUS_HELP.hp} />
       <Bar label="Block" value={block} max={maxHp} text={`🛡️ ${block}`} colour="bg-block" help={STATUS_HELP.block} />
@@ -183,6 +176,34 @@ function FighterPanel({ side, icon, fighter, snapshot }: FighterPanelProps) {
         })}
       </ul>
     </article>
+  );
+}
+
+/**
+ * Sets of a fighter: active ones with their bonus, started ones with their progress.
+ */
+function FighterSets({ fighter }: { fighter: Fighter }) {
+  const counts = setCounts(fighter.items.map((item) => getItem(item.itemId)));
+  const started = SET_IDS.filter((set) => counts[set] > 0);
+  return (
+    <ul className="flex flex-col gap-1 text-xs" aria-label="Set bonuses">
+      {started.length === 0 && <li className="text-muted">No set items</li>}
+      {started.map((set) =>
+        fighter.sets.includes(set) ? (
+          <li key={set} className="flex flex-wrap items-center gap-1.5">
+            <SetBadge set={set} />
+            <span className="font-bold">✓ {describeSetBonus(set)}</span>
+          </li>
+        ) : (
+          <li key={set} className="flex flex-wrap items-center gap-1.5 text-muted">
+            <SetBadge set={set} />
+            <span>
+              {counts[set]}/{SET_THRESHOLD}, not active
+            </span>
+          </li>
+        ),
+      )}
+    </ul>
   );
 }
 
