@@ -13,7 +13,7 @@ interface ItemCardProps {
 
 export function ItemCard({ item, children }: ItemCardProps) {
   return (
-    <article className="flex flex-col gap-2 rounded-lg border-2 border-gold/40 bg-ink/40 p-3">
+    <article className="flex h-full flex-col gap-2 rounded-lg border-2 border-gold/40 bg-ink/40 p-3">
       <div className="flex items-start gap-3">
         <span className="text-3xl leading-none" aria-hidden>
           {item.icon}
