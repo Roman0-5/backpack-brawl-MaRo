@@ -1,6 +1,7 @@
 import { BURN_DAMAGE_PER_STACK, BURN_DECAY_SHARE, HERO_BASE_HP, MAX_TICKS, POISON_DAMAGE_PER_STACK, POISON_INTERVAL, TICK_SECONDS } from "./battle";
 import { GOLD_PER_ROUND, REROLL_COST, START_GOLD, START_LIVES, WINS_TO_VICTORY } from "./run";
-import { SET_THRESHOLD, SETS } from "./sets";
+import { CATALOG } from "./items";
+import { SET_IDS, SET_THRESHOLD, SETS } from "./sets";
 import { BACKPACK_COLS, BACKPACK_ROWS, SHOP_SIZE } from "./shop";
 import type { ItemEffects, SetId } from "./types";
 
@@ -82,7 +83,21 @@ export const RULES: RuleSection[] = [
     rules: [
       `☠️ Poison adds stacks to the enemy. Every ${POISON_SECONDS} s a poisoned fighter loses ${POISON_DAMAGE_PER_STACK} HP per stack. Block doesn't help, and stacks keep adding up until the battle ends.`,
       `💚 Heal restores your own HP, never above your max HP. A fighter who is already knocked out can't be healed.`,
-      `Order within a moment: items fire first, then poison hurts both fighters at the same time, then knockouts are checked.`,
+      `🔥 Burn adds stacks to the enemy too, but works differently: every ${TICK_SECONDS} s a burning fighter takes ${BURN_DAMAGE_PER_STACK} damage per stack, and block absorbs it first. Afterwards ${BURN_DECAY_SHARE * 100} % of the stacks (rounded up) burn out, so burn always wears off.`,
+      `Poison or burn? Burn hits hard and fast but fades and is stopped by block; poison is slow but ignores block and never fades.`,
+      `Order within a moment: items fire first, then poison and burn hurt both fighters at the same time, then knockouts are checked.`,
+    ],
+  },
+  {
+    title: "🧩 Sets",
+    rules: [
+      `Some items belong to a set (see the badge on the item). With ${SET_THRESHOLD} or more different items of one set in a backpack, its bonus is active. Copies of the same item count once.`,
+      ...SET_IDS.map((set) => {
+        const { icon, name } = SETS[set];
+        const items = CATALOG.filter((item) => item.set === set).map((item) => item.name);
+        return `${icon} ${name} (${items.join(", ")}): ${describeSetBonus(set)}.`;
+      }),
+      `Set bonuses work the same for opponents. Your backpack shows how close you are to each bonus; in battle the active bonuses of both fighters are shown.`,
     ],
   },
 ];
