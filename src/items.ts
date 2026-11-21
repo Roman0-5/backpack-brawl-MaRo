@@ -13,6 +13,9 @@ export const CATALOG: ItemDef[] = [
   { id: "poison-dart", name: "Poison Dart", icon: "🎯", price: 3, cooldown: 6, effects: { damage: 1, poison: 1 } },
   { id: "toxic-vial", name: "Toxic Vial", icon: "🧪", price: 4, cooldown: 10, effects: { poison: 2 } },
   { id: "venom-fang", name: "Venom Fang", icon: "🐍", price: 5, cooldown: 8, effects: { damage: 3, poison: 1 } },
+  { id: "torch", name: "Torch", icon: "🔥", price: 3, cooldown: 6, effects: { damage: 2, burn: 3 }, set: "fire" },
+  { id: "fire-bomb", name: "Fire Bomb", icon: "🧨", price: 4, cooldown: 8, effects: { burn: 6 }, set: "fire" },
+  { id: "magma-shield", name: "Magma Shield", icon: "🌋", price: 4, cooldown: 6, effects: { block: 3, burn: 2 }, set: "fire" },
 ];
 
 const byId = new Map(CATALOG.map((item) => [item.id, item]));
