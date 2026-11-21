@@ -6,42 +6,47 @@ classes: {
   todo: { style: { fill: "#fee2e2"; stroke: "#dc2626"; font-color: "#7f1d1d"; stroke-dash: 4 } }
 }
 
-legend: Legende {
-  d: "existiert, bleibt" { class: done }
-  p: "existiert, wird erweitert / repariert (B#)" { class: part }
-  t: "neu (B#)" { class: todo }
+legend: "Legende (Stand 2026-11-21)" {
+  d: "fertig / bleibt\n✓ = umgesetzt" { class: done }
+  p: "teilweise umgesetzt,\noffene B# folgen" { class: part }
+  t: "neu, noch offen (B#)" { class: todo }
 }
 
 browser: Browser (React + Vite) {
   pages: Pages {
     start: StartPage { class: done }
-    shop: "ShopPage\nB5: Such-Guard, Fehler-Reset\nB1: Verkaufen/Reroll-Buttons" { class: part }
-    battle: "BattlePage\nB3/B4: Status-Anzeige" { class: part }
+    shop: "ShopPage\nB1 ✓ Verkaufen/Reroll-Buttons\nB5: Such-Guard, Fehler-Reset" { class: part }
+    battle: "BattlePage / BattleView\nB3 ✓ Poison-Zähler, Log-Farben\nB4: Burn, Set-Boni" { class: part }
     result: "ResultPage\nB7: Name + Submit" { class: part }
     hof: "HallOfFamePage\nB7" { class: todo }
+  }
+  components: Komponenten {
+    backpack: "Backpack.tsx\nB1 ✓ Verkaufen\nB2 ✓ Auswahl, mögliche Züge, Abbrechen" { class: done }
+    rulespanel: "RulesPanel / rules.ts\nB1–B3 ✓ Regeltexte, Tooltips\nB4: Sets, Burn" { class: part }
   }
   state: State {
     provider: "GameProvider\n(nur useState)\nB6: Save laden/schreiben" { class: part }
     save: "Save-Modul (localStorage)\nB6: Validierung + Fallback" { class: todo }
   }
   rules: Regeln (reines TS, ohne React) {
-    run: "run.ts\nkaufen\nB1: verkaufen, reroll" { class: part }
+    run: "run.ts\nkaufen\nB1 ✓ verkaufen, reroll\nB2 ✓ verschieben / tauschen" { class: done }
     shopts: "shop.ts\nseeded RNG" { class: done }
     game: "game.ts\nPhasen\nB5: Such-ID, Runden-Guard" { class: part }
-    battle: "battle.ts\nDamage + Block\nB3: Poison, Heal\nB4: Burn, Set-Boni" { class: part }
-    items: "items.ts\n6 Items\nB3: ≥3 Items je Effekt\nB4: ≥2 Sets (Fire), je ≥3 Items" { class: part }
-    arrange: "Backpack verschieben / swap\nB2" { class: todo }
+    battle: "battle.ts\nDamage + Block\nB3 ✓ Poison (Stacks, Tick), Heal\nB4: Burn, Set-Boni" { class: part }
+    items: "items.ts\n12 Items\nB3 ✓ je 3 Poison- und Heal-Items\nB4: ≥2 Sets (Fire), je ≥3 Items" { class: part }
   }
-  tests: "Vitest-Tests\n(0 vorhanden)" { class: todo }
+  tests: "Vitest-Tests (43)\nrun.test.ts (B1, B2)\nbattle.test.ts, items.test.ts (B3)" { class: done }
 }
 
 server: Express API {
   health: "GET /api/health" { class: done }
-  opp: "GET /api/opponents\nB3/B4: Gegner nutzen neue Items" { class: part }
+  opp: "GET /api/opponents\nB3 ✓ Gegner nutzen Poison/Heal\nB4: Gegner nutzen Sets" { class: part }
   runs: "POST / GET /api/runs\nB7: Validierung, Ranking,\nIn-Memory" { class: todo }
 }
 
 browser.pages.shop -> browser.rules.run
+browser.pages.shop -> browser.components.backpack
+browser.components.backpack -> browser.rules.run
 browser.pages.shop -> browser.rules.game
 browser.pages.battle -> browser.rules.battle
 browser.rules.battle -> browser.rules.items
