@@ -9,7 +9,7 @@ import type { BattleReplay, GameState, Opponent, RunState } from "./types";
  */
 
 export function newGame(seed: number): GameState {
-  return { phase: "shop", run: newRun(seed), battle: null, error: null };
+  return { phase: "shop", run: newRun(seed), battle: null, error: null, searchId: null };
 }
 
 /** Applies a shop/backpack action; only allowed while shopping. */
@@ -27,23 +27,35 @@ export function fightBlocker(game: GameState): string | null {
   return null;
 }
 
-export function startSearch(game: GameState): GameState {
+/** Starts an opponent search under `searchId`; unchanged state if not allowed. */
+export function startSearch(game: GameState, searchId: string): GameState {
   if (fightBlocker(game) !== null) return game;
-  return { ...game, phase: "searching", error: null };
+  return { ...game, phase: "searching", error: null, searchId };
 }
 
-/** Ends a running search with an error: back to a usable shop that shows the message. */
-export function searchFailed(game: GameState, error: string): GameState {
-  if (game.phase !== "searching") return game;
-  return { ...game, phase: "shop", error };
+/** Whether a response belongs to the search that is running right now. */
+const isCurrentSearch = (game: GameState, searchId: string) => game.phase === "searching" && game.searchId === searchId;
+
+/** Ends the search `searchId` with an error: back to a usable shop that shows the message. */
+export function searchFailed(game: GameState, searchId: string, error: string): GameState {
+  if (!isCurrentSearch(game, searchId)) return game;
+  return { ...game, phase: "shop", error, searchId: null };
 }
 
-/** Simulates the battle against `opponent` and starts its replay at the first frame. */
-export function startBattle(game: GameState, opponent: Opponent): GameState {
+/**
+ * Answer of the search `searchId`: simulates the battle and starts its replay.
+ * Slow, duplicate or late answers (other search, no search running) change nothing.
+ * An opponent for another round ends the search with an error instead of fighting.
+ */
+export function startBattle(game: GameState, opponent: Opponent, searchId: string): GameState {
+  if (!isCurrentSearch(game, searchId)) return game;
+  if (opponent.round !== game.run.round) {
+    return searchFailed(game, searchId, "The arena sent an opponent for the wrong round.");
+  }
   const player = buildPlayerFighter(game.run.backpack);
   const enemy = buildOpponentFighter(opponent);
   const result = simulateBattle(player, enemy);
-  return { ...game, phase: "battle", battle: { opponent, player, enemy, result, frame: 0 } };
+  return { ...game, phase: "battle", searchId: null, battle: { opponent, player, enemy, result, frame: 0 } };
 }
 
 export const isReplayDone = (battle: BattleReplay) => battle.frame >= battle.result.frames.length - 1;
