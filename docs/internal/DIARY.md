@@ -73,18 +73,18 @@ Mindestens drei. Je Entscheidung: Kontext, Alternativen, Wahl, Begründung, Bele
    - Wahl: Jeder Klick erzeugt eine eigene ID (`crypto.randomUUID()`). `startSearch` übernimmt sie nur, wenn die Suche erlaubt ist. `startBattle` und `searchFailed` wirken nur bei laufender Suche mit derselben ID; danach wird die ID gelöscht.
    - Begründung: Bei einem Doppelklick vor dem Neu-Rendern würden beide Klicks aus dem alten Zustand denselben Zählerstand berechnen; eine ID pro Klick ist immer eindeutig. Die Prüfung läuft im Update auf dem aktuellen Zustand (`update((current) => …)`), also ohne Race Condition durch veraltete Werte, und ist per Unit-Test belegt.
    - Trade-off: Ein Doppelklick schickt trotzdem eine zweite Anfrage; ihre Antwort wird verworfen. Für einen GET-Request unkritisch.
-   - Beleg: _(nach Merge)_
+   - Beleg: `f45f6f6`
 7. **Daten von außen werden zur Laufzeit geprüft, bevor das Spiel sie nutzt.**
    - Kontext: TypeScript-Typen gelten nur zur Compile-Zeit. Die API-Antwort ist zur Laufzeit `unknown`; ein unbekanntes Item hätte die Kampfsimulation und damit die App abstürzen lassen. B6 bringt mit `localStorage` eine zweite solche Grenze.
    - Alternativen: Antwort per Typ-Cast übernehmen; Schema-Bibliothek (z. B. Zod).
    - Wahl: Eigene Prüffunktion `parseOpponent` (Typen, gültige Runde, nur bekannte Items); bei Fehler eine Meldung für den Spieler statt eines Absturzes.
    - Begründung: Laufzeitgrenze wie im Skript (Kap. 24.4). Prüfung gegen den aktuellen Item-Katalog, damit neue Items aus B3/B4 automatisch gültig sind. Keine neue Abhängigkeit für wenige Felder.
    - Trade-off: Handgeschriebene Prüfung muss bei neuen Feldern mitgepflegt werden.
-   - Beleg: _(nach Merge)_
+   - Beleg: `652d2d6`
 
 ## AI Usage
 
-- Matthias: Claude (Chat) für Analyse von Codebase und Architektur, Priorisierung der Probleme, Erklärung von Ursache und Lösung sowie als Code-Vorlage für B1 und B2. Jede Änderung selbst geprüft (Unit-Tests, manueller Test im Browser), Entscheidungen begründet und mit Roman abgestimmt.
+- Matthias: Claude (Chat) für Analyse von Codebase und Architektur, Priorisierung der Probleme, Erklärung von Ursache und Lösung sowie als Code-Vorlage für B1, B2 und B5. Jede Änderung selbst geprüft (Unit-Tests, manueller Test im Browser), Entscheidungen begründet und mit Roman abgestimmt.
 - Roman: Für den Anfang Claude Code benutzt um Diagramm der Codebase und Requirements generieren zu lassen. Für B3 Claude Code als Pair-Programmer: Regeln und Werte gemeinsam festgelegt, dann Umsetzung in kleinen Schritten (ein Schritt = ein Commit), jeweils mit Tests. Jeden Schritt selbst geprüft (Diff, Lint, Tests, Build), selbst committet und am Ende manuell im Browser getestet. Die Balance der neuen Items und Gegner per Simulation prüfen lassen.
 
 ## Laufendes Protokoll (Material fürs Diary)
@@ -101,6 +101,7 @@ Kurze Einträge mit Datum, Kurzerklärung, und Commit-Hash.
 | 2026-11-20 | B1 umgesetzt: Fix voller Rucksack, Verkaufen, Reroll (Entscheidung 3), 12 Unit-Tests. Per PR #1 als Merge-Commit nach `main`                                                                                                          | `3c4ab2f`, `7a1cc4c`, `13a4b2a`, `c2a3f0c`, `54303b9`, Merge `08dbc28` |
 | 2026-11-21 | B2 umgesetzt: Verschieben/Tauschen als eine Operation, Auswahl als UI-Zustand (Entscheidung 4), 7 neue Unit-Tests (19 gesamt). Tests im ersten Commit vergessen und ohne Umschreiben der Historie nachgereicht. Per PR #2 nach `main` | `0152a68`, `eb8c4d0`, `77293e5`, Merge `e0eb3e9`                           |
 | 2026-11-21 | B3 umgesetzt: zuerst Tests für die bestehenden Kampfregeln, dann Heal, Poison-Stacks und Poison-Tick (Entscheidung 5), je 3 Items pro Effekt, Gegner ab Runde 3, Poison-Zähler, Log-Farben, Regeltext. 24 neue Unit-Tests (43 gesamt). 12 kleine Commits, per PR #3 nach `main` | `53f0296` … `a561565`, Merge `e5f29c2` |
+| 2026-11-21 | B5 umgesetzt: Suche führt nach Fehler zurück in den Shop, keine zweite Suche, Such-ID gegen späte/doppelte Antworten (Entscheidung 6), verständliche Meldungen, Timeout und Laufzeitprüfung der API-Antwort (Entscheidung 7). 23 neue Unit-Tests (66 gesamt). Per PR #4 nach `main` | `dafdad0`, `aaa33a3`, `f45f6f6`, `652d2d6`, Merge `498091d` |
 
 ## Final Reflection und Lessons learned
 
