@@ -94,11 +94,11 @@ Mindestens drei. Je Entscheidung: Kontext, Alternativen, Wahl, Begründung, Bele
    - Wahl: Gespeichert werden Version, Phase, Run und während eines Kampfs der Gegner, in `localStorage`. Kampf-Frames, Such-ID und Auswahl werden nicht gespeichert. Ein laufendes Replay wird gespeichert, als wäre es übersprungen: Nach dem Refresh zählt der Kampf, und man sieht sein Ende. Ein Refresh während der Suche führt in den Shop mit Meldung. Kaputte, inkompatible oder unmögliche Saves werden verworfen, Startseite mit Meldung. Die Policy steht für Spieler im Regelpanel („💾 Saving").
    - Begründung: Das Ergebnis steht schon beim Kampfstart fest (deterministische Simulation), also kann ein Refresh es weder verhindern noch doppelt anwenden. Frames lassen sich aus Rucksack und Gegner identisch neu berechnen; der Save bleibt klein und unabhängig vom Frame-Format aus B3/B4. Bei der Suche gab es noch keinen Gegner, und der Gegner pro Runde ist fest, also bringt der Abbruch keinen Vorteil. Seed und Shop sind gespeichert, also kein Gratis-Reroll (Entscheidung 3).
    - Trade-off: Wer während des Kampfs neu lädt, sieht den Rest des Replays nicht. Ein Spieler kann den Save in den DevTools gültig verändern (z. B. Gold von 3 auf 4); ohne Server lässt sich das nicht verhindern, es betrifft aber nur das eigene Einzelspieler-Spiel.
-   - Beleg: _(nach Merge)_
+   - Beleg: `409f275` (Speichern, Prüfen, Laden mit Tests), `48a468e` (localStorage, Startseite, Regeltext)
 
 ## AI Usage
 
-- Matthias: Claude (Chat) für Analyse von Codebase und Architektur, Priorisierung der Probleme, Erklärung von Ursache und Lösung sowie als Code-Vorlage für B1, B2 und B5. Jede Änderung selbst geprüft (Unit-Tests, manueller Test im Browser), Entscheidungen begründet und mit Roman abgestimmt.
+- Matthias: Claude (Chat) für Analyse von Codebase und Architektur, Priorisierung der Probleme, Erklärung von Ursache und Lösung sowie als Code-Vorlage für B1, B2, B5 und B6. Jede Änderung selbst geprüft (Unit-Tests, manueller Test im Browser), Entscheidungen begründet und mit Roman abgestimmt.
 - Roman: Für den Anfang Claude Code benutzt um Diagramm der Codebase und Requirements generieren zu lassen. Für B3 Claude Code als Pair-Programmer: Regeln und Werte gemeinsam festgelegt, dann Umsetzung in kleinen Schritten (ein Schritt = ein Commit), jeweils mit Tests. Jeden Schritt selbst geprüft (Diff, Lint, Tests, Build), selbst committet und am Ende manuell im Browser getestet. Die Balance der neuen Items und Gegner per Simulation prüfen lassen. Bei B4 genauso; die Simulation hat dabei den Designfehler im Burn-Abbau aufgedeckt (Entscheidung 8). Beim eigenen Testen im Browser zwei Anzeigefehler gefunden (Burn-Icon, Gleichstand-Text) und eine unklare Set-Anzeige, die daraufhin verbessert wurde.
 
 ## Laufendes Protokoll (Material fürs Diary)
@@ -117,6 +117,8 @@ Kurze Einträge mit Datum, Kurzerklärung, und Commit-Hash.
 | 2026-11-21 | B3 umgesetzt: zuerst Tests für die bestehenden Kampfregeln, dann Heal, Poison-Stacks und Poison-Tick (Entscheidung 5), je 3 Items pro Effekt, Gegner ab Runde 3, Poison-Zähler, Log-Farben, Regeltext. 24 neue Unit-Tests (43 gesamt). 12 kleine Commits, per PR #3 nach `main` | `53f0296` … `a561565`, Merge `e5f29c2` |
 | 2026-11-21 | B5 umgesetzt: Suche führt nach Fehler zurück in den Shop, keine zweite Suche, Such-ID gegen späte/doppelte Antworten (Entscheidung 6), verständliche Meldungen, Timeout und Laufzeitprüfung der API-Antwort (Entscheidung 7). 23 neue Unit-Tests (66 gesamt). Per PR #4 nach `main` | `dafdad0`, `aaa33a3`, `f45f6f6`, `652d2d6`, Merge `498091d` |
 | 2026-11-21 | B4 umgesetzt: Burn (Block zuerst, klingt ab), Sets Fire und Iron mit Boni beim Fighter-Bau für beide Seiten (Entscheidung 8), Gegner mit Sets, Badges, Set-Fortschritt in Shop und Kampf, Burn-Zähler, Regeltexte. Designfehler im Burn-Abbau per Simulation gefunden und als eigener `fix` behoben; zwei Anzeigefehler beim manuellen Testen gefunden. 27 neue Unit-Tests (93 gesamt). Per PR #5 nach `main` | `30fa0c5` … `9e8a012`, Fix `1fc8ec1`, `d6ea04d`, Merge `30098b0` |
+| 2026-11-21 | Shop-Karten einer Zeile gleich hoch gemacht; eigener PR, weil es nicht zu B6 gehört | `4a84058`, Merge `2b22b43` |
+| 2026-11-21 | B6 umgesetzt: Run überlebt Neuladen, Policy für Suche (abbrechen) und Kampf (zählt sofort), Prüfung kaputter/unmöglicher Saves, „Continue run", Regelpanel (Entscheidung 9). 19 neue Unit-Tests (112 gesamt), manuell im Browser geprüft. Per PR #7 nach `main` | `409f275`, `48a468e`, Merge `5c9959c` |
 
 ## Final Reflection und Lessons learned
 
