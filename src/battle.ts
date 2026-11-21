@@ -7,6 +7,10 @@ export const TICK_SECONDS = 0.5;
 /** Battles that last longer are decided by the timeout rule. */
 export const MAX_TICKS = 60;
 export const HERO_BASE_HP = 40;
+/** Poison deals its damage every this many ticks. */
+export const POISON_INTERVAL = 2;
+/** HP lost per poison stack on every poison tick. */
+export const POISON_DAMAGE_PER_STACK = 1;
 
 /** Turns a list of item ids into a fighter with the catalog values of each item. */
 export function buildFighter(itemIds: string[], baseHp: number, name = "Fighter"): Fighter {

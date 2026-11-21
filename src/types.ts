@@ -1,6 +1,10 @@
 export interface ItemEffects {
   damage?: number;
   block?: number;
+  /** Poison stacks added to the enemy. */
+  poison?: number;
+  /** HP restored to the fighter itself, never above max HP. */
+  heal?: number;
 }
 
 export interface ItemDef {
