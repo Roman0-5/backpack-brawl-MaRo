@@ -40,13 +40,35 @@ describe("block", () => {
   test("absorbs damage first, only the rest is lost from HP", () => {
     // Spieler wird vor dem Gegner aufgelöst: erst 4 Block, dann trifft der Gegner mit 6.
     const result = simulateBattle(fighter(40, [item({ block: 4 })]), fighter(40, [item({ damage: 6 }, 1)]));
-    expect(result.frames[1].player).toEqual({ hp: 38, maxHp: 40, block: 0 });
+    expect(result.frames[1].player).toEqual({ hp: 38, maxHp: 40, block: 0, poison: 0 });
     expect(result.events[1].message).toContain("(4 blocked)");
   });
 
   test("stays for the rest of the battle and adds up", () => {
     const result = simulateBattle(fighter(40, [item({ block: 5 })]), fighter(40));
     expect(result.frames[2].player.block).toBe(10);
+  });
+});
+
+describe("poison stacks", () => {
+  test("are added to the enemy, not to the fighter itself", () => {
+    const result = simulateBattle(fighter(40, [item({ poison: 2 }, 3)]), fighter(40));
+    expect(result.frames[2].opponent.poison).toBe(0); // vor dem ersten Feuern
+    expect(result.frames[3].opponent.poison).toBe(2);
+    expect(result.frames[3].player.poison).toBe(0);
+  });
+
+  test("add up", () => {
+    const result = simulateBattle(fighter(40, [item({ poison: 2 }, 3), item({ poison: 1 }, 3)]), fighter(40));
+    expect(result.frames[3].opponent.poison).toBe(3);
+    expect(result.frames[6].opponent.poison).toBe(6);
+  });
+
+  test("are shown in the combat log with the new total", () => {
+    const result = simulateBattle(fighter(40, [item({ poison: 2 }, 3)]), fighter(40));
+    const second = result.events.filter((e) => e.kind === "poison")[1];
+    expect(second).toMatchObject({ source: "player", target: "opponent", amount: 2 });
+    expect(second.message).toContain("4 stacks");
   });
 });
 

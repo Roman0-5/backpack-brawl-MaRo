@@ -59,9 +59,11 @@ export interface FighterSnapshot {
   hp: number;
   maxHp: number;
   block: number;
+  /** Poison stacks on the fighter. */
+  poison: number;
 }
 
-export type BattleEventKind = "damage" | "block" | "heal";
+export type BattleEventKind = "damage" | "block" | "poison" | "heal";
 
 export interface BattleEvent {
   tick: number;
