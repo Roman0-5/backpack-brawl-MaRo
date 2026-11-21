@@ -1,4 +1,5 @@
 import { getItem } from "./items";
+import { activeSets, withSetBonuses } from "./sets";
 import { itemIdsOf } from "./shop";
 import type { Backpack, BattleEvent, BattleResult, Fighter, FighterItem, FighterSnapshot, Opponent, Side } from "./types";
 
@@ -16,13 +17,22 @@ export const BURN_DAMAGE_PER_STACK = 1;
 /** Burn stacks lost after every burn tick. */
 export const BURN_DECAY = 1;
 
-/** Turns a list of item ids into a fighter with the catalog values of each item. */
+/**
+ * Turns a list of item ids into a fighter: the catalog values of each item plus
+ * the bonuses of the fighter's active sets. Player and opponents are both built
+ * here, so set bonuses apply to both alike; the battle itself knows nothing about sets.
+ */
 export function buildFighter(itemIds: string[], baseHp: number, name = "Fighter"): Fighter {
-  const items: FighterItem[] = itemIds.map((id) => {
-    const def = getItem(id);
-    return { itemId: def.id, name: def.name, icon: def.icon, cooldown: def.cooldown, effects: { ...def.effects } };
-  });
-  return { name, maxHp: baseHp, items };
+  const defs = itemIds.map(getItem);
+  const sets = activeSets(defs);
+  const items: FighterItem[] = defs.map((def) => ({
+    itemId: def.id,
+    name: def.name,
+    icon: def.icon,
+    cooldown: def.cooldown,
+    effects: withSetBonuses(def.effects, sets),
+  }));
+  return { name, maxHp: baseHp, items, sets };
 }
 
 /** The player's fighter: every backpack item and the hero's base HP. */

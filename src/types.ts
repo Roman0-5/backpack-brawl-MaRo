@@ -115,7 +115,10 @@ export interface FighterItem {
 export interface Fighter {
   name: string;
   maxHp: number;
+  /** Items with their battle values, set bonuses already included. */
   items: FighterItem[];
+  /** Sets whose bonus is active for this fighter. */
+  sets: SetId[];
 }
 
 /** A simulated battle being replayed frame by frame. */

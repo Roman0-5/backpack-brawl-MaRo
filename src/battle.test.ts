@@ -11,7 +11,7 @@ function item(effects: ItemEffects, cooldown = 1): FighterItem {
 }
 
 function fighter(maxHp: number, items: FighterItem[] = [], name = "Fighter"): Fighter {
-  return { name, maxHp, items };
+  return { name, maxHp, items, sets: [] };
 }
 
 describe("damage", () => {

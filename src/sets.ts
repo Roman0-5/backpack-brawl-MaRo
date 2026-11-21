@@ -41,3 +41,19 @@ export function activeSets(items: SetMember[]): SetId[] {
   const counts = setCounts(items);
   return SET_IDS.filter((id) => counts[id] >= SET_THRESHOLD);
 }
+
+/**
+ * An item's effects with the bonuses of the given active sets. A bonus only
+ * boosts an effect the item already has, so a sword never starts to burn.
+ * Returns a new object; the catalog entry stays untouched.
+ */
+export function withSetBonuses(effects: ItemEffects, sets: SetId[]): ItemEffects {
+  const result: ItemEffects = { ...effects };
+  for (const id of sets) {
+    for (const [effect, extra] of Object.entries(SETS[id].bonus) as [keyof ItemEffects, number][]) {
+      const base = result[effect];
+      if (base) result[effect] = base + extra;
+    }
+  }
+  return result;
+}
