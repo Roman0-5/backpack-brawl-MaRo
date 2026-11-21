@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { TICK_SECONDS } from "../battle";
 import { describeEffects, getItem } from "../items";
 import { moveBlocker, sellPrice } from "../run";
-import { SETS } from "../sets";
+import { describeSetBonus } from "../rules";
+import { SET_IDS, SET_THRESHOLD, setCounts, SETS } from "../sets";
+import { itemIdsOf } from "../shop";
 import { BACKPACK_COLS } from "../shop";
 import type { ItemDef, RunState } from "../types";
 import { SetBadge } from "./SetBadge";
@@ -54,6 +56,7 @@ export function Backpack({ run, onSell, onMove }: BackpackProps) {
   return (
     <section className="rounded-lg border border-panel-edge bg-panel p-4">
       <h2 className="font-display text-xl font-bold">🎒 Backpack</h2>
+      <SetProgress run={run} />
       <p className="mb-3 min-h-10 text-sm text-muted" aria-live="polite">
         {activeItem
           ? `Moving ${activeItem.name}: click a highlighted slot. Click it again or press Esc to cancel.`
@@ -113,5 +116,26 @@ export function Backpack({ run, onSell, onMove }: BackpackProps) {
         })}
       </ul>
     </section>
+  );
+}
+
+/** Progress of every set in the backpack, e.g. "🔥 Fire 1/2"; an active set shows its bonus. */
+function SetProgress({ run }: { run: RunState }) {
+  const counts = setCounts(itemIdsOf(run.backpack).map(getItem));
+  return (
+    <ul className="mt-2 flex flex-col gap-1 text-sm" aria-label="Set bonuses">
+      {SET_IDS.map((set) => {
+        const active = counts[set] >= SET_THRESHOLD;
+        return (
+          <li key={set} className={`flex flex-wrap items-center gap-2 ${active ? "" : "text-muted"}`}>
+            <SetBadge set={set} />
+            <span className="font-mono text-xs">
+              {Math.min(counts[set], SET_THRESHOLD)}/{SET_THRESHOLD}
+            </span>
+            {active ? <span className="font-bold">✓ active: {describeSetBonus(set)}</span> : <span className="text-xs">different {SETS[set].name} items for the bonus</span>}
+          </li>
+        );
+      })}
+    </ul>
   );
 }
