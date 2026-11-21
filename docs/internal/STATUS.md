@@ -1,16 +1,16 @@
 # Backpack Brawl – Standort und Setup
 
-Stand: 2026-11-21 (nach B3). Abgabe: nächsten Freitag. Diagramm: `docs/diagrams/status.svg` (Quelle `docs/diagrams/status.d2`).
+Stand: 2026-11-21 (nach B3, B4, B5). Abgabe: nächsten Freitag. Diagramm: `docs/diagrams/status.svg` (Quelle `docs/diagrams/status.d2`).
 Neu rendern: `d2 --layout=elk docs/diagrams/status.d2 docs/diagrams/status.svg` (ebenso `split.d2`)
 
 ## Wo wir stehen
 
-B1, B2 und B3 sind umgesetzt und per PR (#1–#3) nach `main` gemergt. Offen: B4–B7 und die Qualitätsziele. Die Spielregeln liegen als reine TypeScript-Module ohne React vor (`run.ts`, `shop.ts`, `game.ts`, `battle.ts`, `items.ts`, `rules.ts`). Frontend: React, Vite, Tailwind, react-router (Port 5174). Server: Express (Port 4200) mit `/api/health` und `/api/opponents`. Tests: 43 Vitest-Unit-Tests für die Regelmodule (`run.test.ts`, `battle.test.ts`, `items.test.ts`).
+B1–B5 sind umgesetzt und per PR (#1–#5) nach `main` gemergt. Offen: B6, B7 und die Qualitätsziele. Die Spielregeln liegen als reine TypeScript-Module ohne React vor (`run.ts`, `shop.ts`, `game.ts`, `battle.ts`, `items.ts`, `sets.ts`, `rules.ts`), dazu `api.ts` für die API-Anbindung. Frontend: React, Vite, Tailwind, react-router (Port 5174). Server: Express (Port 4200) mit `/api/health` und `/api/opponents`. Tests: 93 Vitest-Unit-Tests (`run`, `battle`, `items`, `sets`, `game`, `api`).
 
-Zwei Bugs gehören direkt zu B5 (noch offen):
+Die zwei Bugs aus dem Starter, die zu B5 gehörten, sind behoben (PR #4):
 
-- `searchFailed` (`src/game.ts:33`) lässt die Phase auf `searching`. Nach einem API-Fehler hängt die Suche.
-- `startBattle` (`src/game.ts:38`) prüft weder Runde noch Such-ID. Eine späte Antwort kann einen Kampf starten.
+- `searchFailed` ließ die Phase auf `searching`; nach einem API-Fehler hing die Suche.
+- `startBattle` prüfte weder Runde noch Such-ID; eine späte Antwort konnte einen Kampf starten.
 
 ## Anforderungen
 
@@ -19,13 +19,13 @@ Zwei Bugs gehören direkt zu B5 (noch offen):
 | B1 Verkaufen / Reroll          |     10% | Matthias | ✓ gemergt (PR #1, `08dbc28`) | `run.ts`, `Shop.tsx`, `Backpack.tsx`, `rules.ts`                                       |
 | B2 Backpack verschieben / swap |     15% | Matthias | ✓ gemergt (PR #2, `e0eb3e9`) | `Backpack.tsx`, `run.ts`                                                               |
 | B3 Poison / Heal               |     15% | Roman    | ✓ gemergt (PR #3, `e5f29c2`) | `types.ts`, `battle.ts`, `items.ts`, `server/opponents.js`, `BattleView.tsx`, `rules.ts` |
-| B4 Sets + Burn                 |     20% | Roman    | fehlt                         | `items.ts`, `battle.ts`, `ItemCard.tsx`, `RulesPanel.tsx`                              |
-| B5 Matchmaking                 |     10% | Matthias | Bugs (s. o.)                  | `ShopPage.tsx:20-30`, `game.ts`                                                        |
+| B4 Sets + Burn                 |     20% | Roman    | ✓ gemergt (PR #5, `30098b0`) | `sets.ts`, `battle.ts`, `items.ts`, `server/opponents.js`, `SetBadge.tsx`, `Backpack.tsx`, `BattleView.tsx`, `rules.ts` |
+| B5 Matchmaking                 |     10% | Matthias | ✓ gemergt (PR #4, `498091d`) | `game.ts`, `api.ts`, `ShopPage.tsx`                                                    |
 | B6 Save / Resume               |     10% | Matthias | fehlt                         | `GameProvider.tsx`, Validierung des Saves                                              |
 | B7 Hall of Fame                |     20% | Roman    | fehlt                         | `server/index.js`, neue Page, `docs/API.md`                                            |
 | Qualitätsziele                 |       – | beide    | fehlt                         | Doku, in der Prüfung verteidigen                                                       |
 
-B5 ist ein günstiger Bugfix und sollte früh erledigt werden. B4 baut auf B3 auf: Status-Effekte haben bereits einen eigenen Schritt im Tick (`battle.ts`, Entscheidung 5), Burn kommt dort als zweiter Effekt dazu und muss sich klar von Poison unterscheiden (stärker, schneller, von Block absorbiert, klingt ab).
+Offen sind B6 (Matthias) und B7 (Roman). B7 ist mit 20 % das größte offene Feature und das einzige mit nennenswertem Backend-Anteil (neue Endpoints, Validierung, `docs/API.md`). B6 muss mit der Laufzeitprüfung aus B5 (Entscheidung 7) zusammenpassen: gespeicherte Daten sind wie API-Antworten eine Grenze nach außen.
 
 ## Aufteilung nach Feature
 
@@ -33,11 +33,11 @@ Beschlossen: Die Arbeit wird nach Feature aufgeteilt, nicht nach Schicht (Fronte
 
 | Person | Features |
 | ------ | -------- |
-| Matthias | B1 ✓, B2 ✓, B5, B6 |
-| Roman    | B3 ✓, B4, B7       |
+| Matthias | B1 ✓, B2 ✓, B5 ✓, B6 |
+| Roman    | B3 ✓, B4 ✓, B7       |
 
 - B7 liegt in einer Hand (Roman), dann gibt es keine Abstimmung über den API-Vertrag (Endpoints, Felder, Fehlerformat, Ranking-Regel). B3/B4 und die Gegner-Tabelle (`server/opponents.js`) liegen ebenfalls bei Roman, ein Vertrag ist also nicht nötig.
-- Konfliktstellen: `types.ts`/`battle.ts`/`items.ts` (B3 und B4, beide Roman, nacheinander), `run.ts`/`Backpack.tsx` (B1 und B2, beide Matthias, erledigt), `game.ts`/`ShopPage.tsx`/`GameProvider.tsx` (B5 und B6, beide Matthias). Einzige echte Überschneidung: `rules.ts` (Regeltexte aller Features), dort nur neue Abschnitte anhängen.
+- Konfliktstellen: `types.ts`/`battle.ts`/`items.ts` (B3 und B4, beide Roman, erledigt), `run.ts`/`Backpack.tsx` (B1 und B2, beide Matthias, erledigt), `game.ts`/`ShopPage.tsx`/`GameProvider.tsx` (B5 erledigt, B6 offen, beide Matthias). Einzige echte Überschneidung: `rules.ts` (Regeltexte aller Features), dort nur neue Abschnitte anhängen.
 - UI-Redesign berührt fast alle Komponenten: erst nach den Features oder klar einer Person zuordnen.
 - Gemeinsam bleiben: Qualitätsziele, `docs/API.md`, Diary.
 

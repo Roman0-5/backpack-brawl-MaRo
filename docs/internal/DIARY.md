@@ -81,11 +81,18 @@ Mindestens drei. Je Entscheidung: Kontext, Alternativen, Wahl, Begründung, Bele
    - Begründung: Laufzeitgrenze wie im Skript (Kap. 24.4). Prüfung gegen den aktuellen Item-Katalog, damit neue Items aus B3/B4 automatisch gültig sind. Keine neue Abhängigkeit für wenige Felder.
    - Trade-off: Handgeschriebene Prüfung muss bei neuen Feldern mitgepflegt werden.
    - Beleg: `652d2d6`
+8. **Sets und Burn: Boni beim Bau des Fighters, verschiedene Items zählen, Burn klingt anteilig ab.**
+   - Kontext: B4 verlangt Set-Boni ab 2 Items, die für Spieler und Gegner gleich gelten, und Burn, der sich klar von Poison unterscheidet (stärker, schneller, Block fängt ab, klingt ab).
+   - Alternativen: Boni in der Kampfsimulation prüfen; jede Kopie eines Items mitzählen; Burn mit festem Abbau von 1 Stack pro Tick (erster Entwurf) oder mit Obergrenze.
+   - Wahl: `buildFighter` rechnet die Boni der aktiven Sets auf die Item-Werte, bevor der Kampf beginnt. Ein Set ist aktiv mit 2 *verschiedenen* Items. Ein Bonus verstärkt nur Effekte, die ein Item schon hat. Burn halbiert sich nach jedem Tick (aufgerundet).
+   - Begründung: Spieler und Gegner werden über dieselbe Funktion gebaut, damit gelten die Boni für beide gleich, ohne Sonderfall; die Kampfsimulation bleibt unverändert und muss von Sets nichts wissen. Verschiedene Items passen zu „collecting" und verhindern, dass ein billiges Item doppelt gekauft das Set auslöst. Der feste Abbau war ein Designfehler: Kam pro Tick mehr als 1 Stack nach, wuchs Burn unbegrenzt (709 Schaden in 20 s). Die Unit-Tests prüften die Regel wie festgelegt und waren grün; gefunden hat es eine Balance-Simulation auf der reinen, deterministischen `simulateBattle` aus dem Starter. Anteiliger Abbau bleibt immer begrenzt und braucht keine Zusatzregel.
+   - Trade-off: Boni sind im Kampf nicht als eigene Ereignisse sichtbar, sondern stecken in den Item-Werten (z. B. „+4" statt „+3"); deshalb zeigen Shop und Kampf die aktiven Sets mit ihrem Bonus an. Unit-Tests belegen, dass der Code eine Regel richtig umsetzt, nicht, dass die Regel gut ist; dafür braucht es zusätzlich Simulation und manuelles Testen.
+   - Beleg: `4f03050` (Boni im Fighter), `ebdf158` (Test: gleiche Boni für Gegner), `1fc8ec1` (Burn-Fix)
 
 ## AI Usage
 
 - Matthias: Claude (Chat) für Analyse von Codebase und Architektur, Priorisierung der Probleme, Erklärung von Ursache und Lösung sowie als Code-Vorlage für B1, B2 und B5. Jede Änderung selbst geprüft (Unit-Tests, manueller Test im Browser), Entscheidungen begründet und mit Roman abgestimmt.
-- Roman: Für den Anfang Claude Code benutzt um Diagramm der Codebase und Requirements generieren zu lassen. Für B3 Claude Code als Pair-Programmer: Regeln und Werte gemeinsam festgelegt, dann Umsetzung in kleinen Schritten (ein Schritt = ein Commit), jeweils mit Tests. Jeden Schritt selbst geprüft (Diff, Lint, Tests, Build), selbst committet und am Ende manuell im Browser getestet. Die Balance der neuen Items und Gegner per Simulation prüfen lassen.
+- Roman: Für den Anfang Claude Code benutzt um Diagramm der Codebase und Requirements generieren zu lassen. Für B3 Claude Code als Pair-Programmer: Regeln und Werte gemeinsam festgelegt, dann Umsetzung in kleinen Schritten (ein Schritt = ein Commit), jeweils mit Tests. Jeden Schritt selbst geprüft (Diff, Lint, Tests, Build), selbst committet und am Ende manuell im Browser getestet. Die Balance der neuen Items und Gegner per Simulation prüfen lassen. Bei B4 genauso; die Simulation hat dabei den Designfehler im Burn-Abbau aufgedeckt (Entscheidung 8). Beim eigenen Testen im Browser zwei Anzeigefehler gefunden (Burn-Icon, Gleichstand-Text) und eine unklare Set-Anzeige, die daraufhin verbessert wurde.
 
 ## Laufendes Protokoll (Material fürs Diary)
 
@@ -102,6 +109,7 @@ Kurze Einträge mit Datum, Kurzerklärung, und Commit-Hash.
 | 2026-11-21 | B2 umgesetzt: Verschieben/Tauschen als eine Operation, Auswahl als UI-Zustand (Entscheidung 4), 7 neue Unit-Tests (19 gesamt). Tests im ersten Commit vergessen und ohne Umschreiben der Historie nachgereicht. Per PR #2 nach `main` | `0152a68`, `eb8c4d0`, `77293e5`, Merge `e0eb3e9`                           |
 | 2026-11-21 | B3 umgesetzt: zuerst Tests für die bestehenden Kampfregeln, dann Heal, Poison-Stacks und Poison-Tick (Entscheidung 5), je 3 Items pro Effekt, Gegner ab Runde 3, Poison-Zähler, Log-Farben, Regeltext. 24 neue Unit-Tests (43 gesamt). 12 kleine Commits, per PR #3 nach `main` | `53f0296` … `a561565`, Merge `e5f29c2` |
 | 2026-11-21 | B5 umgesetzt: Suche führt nach Fehler zurück in den Shop, keine zweite Suche, Such-ID gegen späte/doppelte Antworten (Entscheidung 6), verständliche Meldungen, Timeout und Laufzeitprüfung der API-Antwort (Entscheidung 7). 23 neue Unit-Tests (66 gesamt). Per PR #4 nach `main` | `dafdad0`, `aaa33a3`, `f45f6f6`, `652d2d6`, Merge `498091d` |
+| 2026-11-21 | B4 umgesetzt: Burn (Block zuerst, klingt ab), Sets Fire und Iron mit Boni beim Fighter-Bau für beide Seiten (Entscheidung 8), Gegner mit Sets, Badges, Set-Fortschritt in Shop und Kampf, Burn-Zähler, Regeltexte. Designfehler im Burn-Abbau per Simulation gefunden und als eigener `fix` behoben; zwei Anzeigefehler beim manuellen Testen gefunden. 27 neue Unit-Tests (93 gesamt). Per PR #5 nach `main` | `30fa0c5` … `9e8a012`, Fix `1fc8ec1`, `d6ea04d`, Merge `30098b0` |
 
 ## Final Reflection und Lessons learned
 
