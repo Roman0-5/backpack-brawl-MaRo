@@ -1,4 +1,4 @@
-import { HERO_BASE_HP, MAX_TICKS, POISON_DAMAGE_PER_STACK, POISON_INTERVAL, TICK_SECONDS } from "./battle";
+import { BURN_DAMAGE_PER_STACK, BURN_DECAY, HERO_BASE_HP, MAX_TICKS, POISON_DAMAGE_PER_STACK, POISON_INTERVAL, TICK_SECONDS } from "./battle";
 import { GOLD_PER_ROUND, REROLL_COST, START_GOLD, START_LIVES, WINS_TO_VICTORY } from "./run";
 import { BACKPACK_COLS, BACKPACK_ROWS, SHOP_SIZE } from "./shop";
 import type { ItemEffects } from "./types";
@@ -17,6 +17,7 @@ export const EFFECT_HELP: Record<keyof ItemEffects, string> = {
   block: "Block: absorbs incoming damage until used up. Unused block stays for the rest of the battle.",
   poison: `Poison: adds stacks to the enemy. Every ${POISON_SECONDS} s a poisoned fighter loses ${POISON_DAMAGE_PER_STACK} HP per stack, ignoring block. Stacks add up and last the whole battle.`,
   heal: "Heal: restores your own HP, never above max HP. A knocked-out fighter can't be healed.",
+  burn: `Burn: adds stacks to the enemy. Every ${TICK_SECONDS} s a burning fighter takes ${BURN_DAMAGE_PER_STACK} damage per stack; block absorbs it first. Afterwards ${BURN_DECAY} stack burns out, so burn fades unless it is fed.`,
 };
 
 export const COOLDOWN_HELP = `Cooldown: the item fires every time this much battle time has passed (1 tick = ${TICK_SECONDS} s).`;

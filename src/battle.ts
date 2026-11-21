@@ -11,6 +11,10 @@ export const HERO_BASE_HP = 40;
 export const POISON_INTERVAL = 2;
 /** HP lost per poison stack on every poison tick. */
 export const POISON_DAMAGE_PER_STACK = 1;
+/** Damage per burn stack on every tick (burn ticks every tick, twice as often as poison). */
+export const BURN_DAMAGE_PER_STACK = 1;
+/** Burn stacks lost after every burn tick. */
+export const BURN_DECAY = 1;
 
 /** Turns a list of item ids into a fighter with the catalog values of each item. */
 export function buildFighter(itemIds: string[], baseHp: number, name = "Fighter"): Fighter {

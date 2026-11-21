@@ -5,7 +5,12 @@ export interface ItemEffects {
   poison?: number;
   /** HP restored to the fighter itself, never above max HP. */
   heal?: number;
+  /** Burn stacks added to the enemy. */
+  burn?: number;
 }
+
+/** Item sets; 2 or more different items of one set in a backpack grant its bonus. */
+export type SetId = "fire" | "iron";
 
 export interface ItemDef {
   id: string;
@@ -15,6 +20,8 @@ export interface ItemDef {
   /** Cooldown in battle ticks (1 tick = 0.5 s). */
   cooldown: number;
   effects: ItemEffects;
+  /** The set this item belongs to, if any (at most one). */
+  set?: SetId;
 }
 
 /** A concrete item the player owns; several instances may share one `itemId`. */
