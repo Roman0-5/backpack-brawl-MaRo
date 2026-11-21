@@ -61,4 +61,12 @@ export const RULES: RuleSection[] = [
       `Knock the enemy out to win. ${STATUS_HELP.timer} If both fall at once, you lose.`,
     ],
   },
+  {
+    title: "🧪 Status effects",
+    rules: [
+      `☠️ Poison adds stacks to the enemy. Every ${POISON_SECONDS} s a poisoned fighter loses ${POISON_DAMAGE_PER_STACK} HP per stack. Block doesn't help, and stacks keep adding up until the battle ends.`,
+      `💚 Heal restores your own HP, never above your max HP. A fighter who is already knocked out can't be healed.`,
+      `Order within a moment: items fire first, then poison hurts both fighters at the same time, then knockouts are checked.`,
+    ],
+  },
 ];
