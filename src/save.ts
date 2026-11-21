@@ -14,7 +14,8 @@ import type { Backpack, GameState, Opponent, Phase, RunState, ShopOffers } from 
 export const SAVE_VERSION = 1;
 export const SAVE_KEY = "backpack-brawl/save";
 
-export const SEARCH_INTERRUPTED = "Search interrupted by reload. Try again.";
+/** Shown in the fight bar, which adds "Try again." itself. */
+export const SEARCH_INTERRUPTED = "Search interrupted by reload.";
 export const SAVE_DISCARDED = "Your saved run couldn't be loaded and was discarded.";
 
 export interface SaveData {
