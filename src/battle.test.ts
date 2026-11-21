@@ -50,6 +50,38 @@ describe("block", () => {
   });
 });
 
+describe("heal", () => {
+  test("restores the fighter's own HP", () => {
+    // Tick 1: Gegner trifft (40 → 35). Tick 2: Heal +3 (→ 38), dann Treffer (→ 33).
+    const result = simulateBattle(fighter(40, [item({ heal: 3 }, 2)]), fighter(40, [item({ damage: 5 })]));
+    const heal = result.events.find((e) => e.kind === "heal");
+    expect(heal).toMatchObject({ tick: 2, source: "player", target: "player", amount: 3 });
+    expect(result.frames[2].player.hp).toBe(33);
+  });
+
+  test("never goes above max HP; the log shows the HP actually restored", () => {
+    // Tick 2: 4 HP fehlen, Heal 10 stellt nur 4 wieder her.
+    const result = simulateBattle(fighter(40, [item({ heal: 10 }, 2)]), fighter(40, [item({ damage: 4 })]));
+    const heal = result.events.find((e) => e.kind === "heal");
+    expect(heal?.amount).toBe(4);
+    expect(heal?.message).toContain("(max HP)");
+  });
+
+  test("restores nothing at full HP", () => {
+    const result = simulateBattle(fighter(40, [item({ heal: 5 })]), fighter(40));
+    expect(result.frames[1].player.hp).toBe(40);
+    expect(result.events[0]).toMatchObject({ kind: "heal", amount: 0 });
+  });
+
+  test("can't undo a knockout in the same tick", () => {
+    // Spieler wird zuerst aufgelöst und schlägt den Gegner k.o.; dessen Heal danach wirkt nicht mehr.
+    const result = simulateBattle(fighter(40, [item({ damage: 10 })]), fighter(10, [item({ heal: 5 })]));
+    expect(result.winner).toBe("player");
+    expect(result.reason).toBe("knockout");
+    expect(result.events.some((e) => e.kind === "heal")).toBe(false);
+  });
+});
+
 describe("end of battle", () => {
   test("if both fighters fall in the same tick, the player loses", () => {
     const result = simulateBattle(fighter(10, [item({ damage: 10 })]), fighter(10, [item({ damage: 10 })]));

@@ -61,7 +61,7 @@ export interface FighterSnapshot {
   block: number;
 }
 
-export type BattleEventKind = "damage" | "block";
+export type BattleEventKind = "damage" | "block" | "heal";
 
 export interface BattleEvent {
   tick: number;

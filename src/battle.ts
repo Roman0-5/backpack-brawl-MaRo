@@ -123,7 +123,7 @@ function resolveItem(
   side: Side,
   emit: (event: Omit<BattleEvent, "tick">) => void,
 ) {
-  const { damage, block } = item.effects;
+  const { damage, block, heal } = item.effects;
   const base = { source: side, itemId: item.itemId };
   const enemySide = other(side);
 
@@ -137,6 +137,13 @@ function resolveItem(
   if (block) {
     self.block += block;
     emit({ ...base, target: side, kind: "block", amount: block, message: `${item.name} grants ${self.fighter.name} ${block} block` });
+  }
+  // A knocked-out fighter stays down: otherwise the side resolved second could undo a knockout in the same tick.
+  if (heal && !isDown(self)) {
+    const healed = Math.min(heal, self.fighter.maxHp - self.hp);
+    self.hp += healed;
+    const note = healed < heal ? " (max HP)" : "";
+    emit({ ...base, target: side, kind: "heal", amount: healed, message: `${item.name} heals ${self.fighter.name} for ${healed}${note}` });
   }
 }
 
