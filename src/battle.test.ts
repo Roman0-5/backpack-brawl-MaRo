@@ -1,6 +1,8 @@
 import { describe, expect, test } from "vitest";
-import { MAX_TICKS, POISON_DAMAGE_PER_STACK, POISON_INTERVAL, simulateBattle } from "./battle";
-import type { Fighter, FighterItem, ItemEffects } from "./types";
+import { buildOpponentFighter, buildPlayerFighter, MAX_TICKS, POISON_DAMAGE_PER_STACK, POISON_INTERVAL, simulateBattle } from "./battle";
+import { getItem } from "./items";
+import { SETS } from "./sets";
+import type { Backpack, Fighter, FighterItem, ItemEffects, Opponent } from "./types";
 
 /**
  * Eigene Test-Items statt Katalog-Items: Die Tests prüfen die Kampfregeln
@@ -233,5 +235,39 @@ describe("determinism", () => {
     const player = fighter(40, [item({ damage: 3 }, 4), item({ block: 2 }, 3)]);
     const opponent = fighter(30, [item({ damage: 5 }, 4)]);
     expect(simulateBattle(player, opponent)).toEqual(simulateBattle(player, opponent));
+  });
+});
+
+describe("set bonuses (built into the fighter)", () => {
+  // Echte Katalog-Items: Hier geht es gerade um die Set-Zugehörigkeit im Katalog.
+  const backpack = (...ids: string[]): Backpack => [...ids.map((itemId, i) => ({ uid: `u${i}`, itemId })), null, null, null, null, null, null].slice(0, 6);
+  const opponent = (...items: string[]): Opponent => ({ id: "test", name: "Test", icon: "🧪", hp: 40, round: 1, items });
+  const blockOf = (f: Fighter, itemId: string) => f.items.find((i) => i.itemId === itemId)?.effects.block;
+  const ironBonus = SETS.iron.bonus.block!;
+
+  test("the player gets the bonus with 2 different items of a set", () => {
+    const hero = buildPlayerFighter(backpack("oak-buckler", "pot-lid"));
+    expect(hero.sets).toEqual(["iron"]);
+    expect(blockOf(hero, "oak-buckler")).toBe(getItem("oak-buckler").effects.block! + ironBonus);
+    expect(blockOf(hero, "pot-lid")).toBe(getItem("pot-lid").effects.block! + ironBonus);
+  });
+
+  test("opponents get exactly the same bonus", () => {
+    const hero = buildPlayerFighter(backpack("oak-buckler", "pot-lid"));
+    const enemy = buildOpponentFighter(opponent("oak-buckler", "pot-lid"));
+    expect(enemy.sets).toEqual(hero.sets);
+    expect(enemy.items.map((i) => i.effects)).toEqual(hero.items.map((i) => i.effects));
+  });
+
+  test("two copies of one item don't activate the set", () => {
+    const hero = buildPlayerFighter(backpack("pot-lid", "pot-lid"));
+    expect(hero.sets).toEqual([]);
+    expect(blockOf(hero, "pot-lid")).toBe(getItem("pot-lid").effects.block);
+  });
+
+  test("the catalog itself stays unchanged", () => {
+    const before = getItem("oak-buckler").effects.block;
+    buildPlayerFighter(backpack("oak-buckler", "pot-lid"));
+    expect(getItem("oak-buckler").effects.block).toBe(before);
   });
 });

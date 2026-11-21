@@ -16,7 +16,7 @@ export interface SetDef {
 
 export const SETS: Record<SetId, SetDef> = {
   fire: { id: "fire", name: "Fire", icon: "🔥", bonus: { burn: 1 } },
-  iron: { id: "iron", name: "Iron", icon: "🛡️", bonus: { block: 2 } },
+  iron: { id: "iron", name: "Iron", icon: "🛡️", bonus: { block: 1 } },
 };
 
 /** All set ids in a fixed order, so lists of sets are always shown the same way. */
