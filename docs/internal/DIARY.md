@@ -67,6 +67,20 @@ Mindestens drei. Je Entscheidung: Kontext, Alternativen, Wahl, Begründung, Bele
    - Begründung: Der Ausgang hängt nicht davon ab, wer zuerst aufgelöst wird. Ohne die Regel „kein Wiederbeleben" könnte der Gegner als Zweiter ein K.o. im selben Tick wegheilen, der Spieler aber nie. Gift, das nicht abklingt, ist der klare Kontrast zu Burn (stärker, aber abklingend), so lassen sich beide Effekte in einem Satz erklären. Ein gemeinsamer Takt an der Kampfuhr ist einfacher zu erklären und zu testen als ein Takt pro Stack. Alle Werte sind Konstanten, aus denen auch Regeltext und Tooltips entstehen.
    - Trade-off: Gift wird in langen Kämpfen sehr stark, weil sich die Stacks aufaddieren. Das gleichen längere Cooldowns der Gift-Items aus, per Simulation geprüft.
    - Beleg: `19f2879` (Heal), `80b04e1`, `776ecf0` (Poison), `a561565` (Regeltext)
+6. **Such-ID pro Klick statt Zähler, Prüfung in den reinen Funktionen.**
+   - Kontext: B5 verlangt, dass nur die Antwort der aktuellen Suche für die aktuelle Runde einen Kampf startet; späte oder doppelte Antworten dürfen nichts bewirken.
+   - Alternativen: Zähler im Zustand (`searchId + 1`); Prüfung nur in der Komponente (`useRef`); Anfrage per `AbortController` abbrechen.
+   - Wahl: Jeder Klick erzeugt eine eigene ID (`crypto.randomUUID()`). `startSearch` übernimmt sie nur, wenn die Suche erlaubt ist. `startBattle` und `searchFailed` wirken nur bei laufender Suche mit derselben ID; danach wird die ID gelöscht.
+   - Begründung: Bei einem Doppelklick vor dem Neu-Rendern würden beide Klicks aus dem alten Zustand denselben Zählerstand berechnen; eine ID pro Klick ist immer eindeutig. Die Prüfung läuft im Update auf dem aktuellen Zustand (`update((current) => …)`), also ohne Race Condition durch veraltete Werte, und ist per Unit-Test belegt.
+   - Trade-off: Ein Doppelklick schickt trotzdem eine zweite Anfrage; ihre Antwort wird verworfen. Für einen GET-Request unkritisch.
+   - Beleg: _(nach Merge)_
+7. **Daten von außen werden zur Laufzeit geprüft, bevor das Spiel sie nutzt.**
+   - Kontext: TypeScript-Typen gelten nur zur Compile-Zeit. Die API-Antwort ist zur Laufzeit `unknown`; ein unbekanntes Item hätte die Kampfsimulation und damit die App abstürzen lassen. B6 bringt mit `localStorage` eine zweite solche Grenze.
+   - Alternativen: Antwort per Typ-Cast übernehmen; Schema-Bibliothek (z. B. Zod).
+   - Wahl: Eigene Prüffunktion `parseOpponent` (Typen, gültige Runde, nur bekannte Items); bei Fehler eine Meldung für den Spieler statt eines Absturzes.
+   - Begründung: Laufzeitgrenze wie im Skript (Kap. 24.4). Prüfung gegen den aktuellen Item-Katalog, damit neue Items aus B3/B4 automatisch gültig sind. Keine neue Abhängigkeit für wenige Felder.
+   - Trade-off: Handgeschriebene Prüfung muss bei neuen Feldern mitgepflegt werden.
+   - Beleg: _(nach Merge)_
 
 ## AI Usage
 
