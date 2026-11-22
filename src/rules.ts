@@ -1,5 +1,6 @@
 import { BURN_DAMAGE_PER_STACK, BURN_DECAY_SHARE, HERO_BASE_HP, MAX_TICKS, POISON_DAMAGE_PER_STACK, POISON_INTERVAL, TICK_SECONDS } from "./battle";
 import { GOLD_PER_ROUND, REROLL_COST, START_GOLD, START_LIVES, WINS_TO_VICTORY } from "./run";
+import { NAME_MAX_LENGTH } from "./hallOfFame";
 import { CATALOG } from "./items";
 import { SET_IDS, SET_THRESHOLD, SETS } from "./sets";
 import { BACKPACK_COLS, BACKPACK_ROWS, SHOP_SIZE } from "./shop";
@@ -110,6 +111,15 @@ export const RULES: RuleSection[] = [
       `Reloading during an opponent search cancels the search; just start it again.`,
       `Reloading during a battle doesn't undo it: the battle still counts and you see its end.`,
       `A damaged or outdated save is discarded and you start fresh.`,
+    ],
+  },
+  {
+    title: "🏆 Hall of Fame",
+    rules: [
+      `When your run is over, enter your name (up to ${NAME_MAX_LENGTH} characters) to add it to the hall of fame. Each run can be entered once.`,
+      RANKING_RULE,
+      `The arena checks every entry: only finished runs whose wins, lives and rounds add up are accepted.`,
+      `The list lives on the local server and starts empty again when the server restarts.`,
     ],
   },
 ];
