@@ -115,4 +115,4 @@ Game rules live in plain TypeScript modules that do not depend on React. Every r
 - `src/state/` holds the game state for all pages (`GameProvider`, `useGame`) and `RequireRoute`, which redirects every page to the one matching the current phase.
 - `src/pages/` contains one component per screen; `src/App.tsx` defines the routes.
 - `src/components/` contains the presentational parts: run header, shop, backpack, item card, rules panel, fight bar, battle view and end-of-run screen.
-- `server/index.js` implements the local API; `server/opponents.js` contains the opponent table.
+- `server/index.ts` implements the local API; `server/opponents.ts` contains the opponent table. Both are TypeScript and run with `tsx` (no build step); `npm run build` type-checks them via `tsconfig.server.json`.
