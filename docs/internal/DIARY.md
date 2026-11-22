@@ -13,6 +13,8 @@ Weitreichende Entscheidungen (Architektur, Spielregeln, Trade-offs) kommen zusä
 unter „Important Decisions" in dieses Diary. So bleibt das Diary kurz, und jede
 Begründung ist trotzdem nachvollziehbar.
 
+**Qualitätsziele:** Korrektheit, Zuverlässigkeit, Verständlichkeit und Wartbarkeit, jeweils mit Begründung, Maßnahmen, Trade-offs und Prüfung in `docs/QUALITY.md`. Barrierefreiheit folgt als fünftes Ziel mit dem UI-Redesign.
+
 **Zuständigkeiten:**
 
 | Feature                                            | Gewicht | Wer?     |
