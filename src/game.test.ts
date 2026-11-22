@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { fightBlocker, newGame, searchFailed, startBattle, startSearch } from "./game";
+import { fightBlocker, markRunSubmitted, newGame, searchFailed, startBattle, startSearch } from "./game";
 import type { GameState, Opponent } from "./types";
 
 /** Neues Spiel mit einem Item im Rucksack, damit die Suche erlaubt ist. */
@@ -82,5 +82,24 @@ describe("search answers", () => {
     expect(wrongRound.phase).toBe("shop");
     expect(wrongRound.battle).toBeNull();
     expect(wrongRound.error).not.toBeNull();
+  });
+});
+
+describe("hall of fame", () => {
+  /** Beendeter Run: alle Leben in 3 Runden verloren. */
+  const finishedGame = (): GameState => ({ ...readyGame(), phase: "finished", run: { ...readyGame().run, lives: 0, round: 3 } });
+
+  test("a finished run can be marked as submitted", () => {
+    expect(markRunSubmitted(finishedGame()).run.submitted).toBe(true);
+  });
+
+  test("marking it again changes nothing", () => {
+    const once = markRunSubmitted(finishedGame());
+    expect(markRunSubmitted(once)).toBe(once);
+  });
+
+  test("a run that is still going can't be marked", () => {
+    const game = readyGame();
+    expect(markRunSubmitted(game)).toBe(game);
   });
 });

@@ -1,5 +1,5 @@
 import { buildOpponentFighter, buildPlayerFighter, simulateBattle } from "./battle";
-import { applyBattleResult, newRun, runOutcome } from "./run";
+import { applyBattleResult, markSubmitted, newRun, runOutcome } from "./run";
 import { itemIdsOf } from "./shop";
 import type { BattleReplay, GameState, Opponent, RunState } from "./types";
 
@@ -77,6 +77,13 @@ export const skipReplay = (game: GameState) => showFrame(game, Infinity);
 export function leaveBattle(game: GameState): GameState {
   if (game.phase !== "battle" || !game.battle || !isReplayDone(game.battle)) return game;
   return { ...game, phase: runOutcome(game.run) ? "finished" : "shop", battle: null };
+}
+
+/** Records that the finished run is in the hall of fame, so it is never sent again (also after a reload). */
+export function markRunSubmitted(game: GameState): GameState {
+  if (game.phase !== "finished") return game;
+  const run = markSubmitted(game.run);
+  return run === game.run ? game : { ...game, run };
 }
 
 /** URL paths of the app's screens. */
