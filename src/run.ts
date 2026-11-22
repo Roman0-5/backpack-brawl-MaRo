@@ -8,9 +8,11 @@ export const WINS_TO_VICTORY = 5;
 export const GOLD_PER_ROUND = 5;
 export const REROLL_COST = 1;
 
-export function newRun(seed: number): RunState {
+export function newRun(seed: number, runId: string): RunState {
   const roll = rollShop(seed);
   return {
+    runId,
+    submitted: false,
     round: 1,
     gold: START_GOLD,
     lives: START_LIVES,
@@ -106,6 +108,11 @@ export function runOutcome(state: RunState): RunOutcome | null {
   if (state.wins >= WINS_TO_VICTORY) return "victory";
   if (state.lives <= 0) return "defeat";
   return null;
+}
+
+/** Marks a finished run as entered in the hall of fame; unchanged while the run is still going. */
+export function markSubmitted(state: RunState): RunState {
+  return runOutcome(state) && !state.submitted ? { ...state, submitted: true } : state;
 }
 
 /** Starts the next round: round + 1, round gold, fresh shop. The backpack is kept. */

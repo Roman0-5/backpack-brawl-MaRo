@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import {
   buyBlocker,
   buyItem,
+  markSubmitted,
   moveBlocker,
   moveItem,
   newRun,
@@ -11,13 +12,14 @@ import {
   sellBlocker,
   sellItem,
   sellPrice,
+  WINS_TO_VICTORY,
 } from "./run";
 import { rollShop } from "./shop";
 import type { RunState } from "./types";
 
 /** Run mit vollem Rucksack und genug Gold – nur der freie Platz fehlt. */
 function fullBackpackRun(): RunState {
-  const run = newRun(1);
+  const run = newRun(1, "run-1");
   return {
     ...run,
     gold: 100,
@@ -39,7 +41,7 @@ describe("buy with a full backpack", () => {
 
 /** Run mit den angegebenen Items im Rucksack (6 Einträge, null = leer). */
 function runWith(itemIds: (string | null)[], gold = 0): RunState {
-  const run = newRun(1);
+  const run = newRun(1, "run-1");
   return { ...run, gold, backpack: itemIds.map((id, i) => (id ? { uid: `item-${i}`, itemId: id } : null)) };
 }
 
@@ -69,7 +71,7 @@ describe("sell", () => {
 
 describe("reroll", () => {
   test("costs REROLL_COST and rolls new offers from the run's seed", () => {
-    const run = { ...newRun(1), gold: 5 };
+    const run = { ...newRun(1, "run-1"), gold: 5 };
     const expected = rollShop(run.seed);
     const after = rerollShop(run);
     expect(after.gold).toBe(5 - REROLL_COST);
@@ -78,17 +80,17 @@ describe("reroll", () => {
   });
 
   test("is deterministic: same state, same reroll", () => {
-    const run = { ...newRun(42), gold: 5 };
+    const run = { ...newRun(42, "run-1"), gold: 5 };
     expect(rerollShop(run)).toEqual(rerollShop(run));
   });
 
   test("works with exactly enough gold and ends at 0", () => {
-    const run = { ...newRun(1), gold: REROLL_COST };
+    const run = { ...newRun(1, "run-1"), gold: REROLL_COST };
     expect(rerollShop(run).gold).toBe(0);
   });
 
   test("without enough gold is blocked and changes nothing", () => {
-    const run = { ...newRun(1), gold: 0 };
+    const run = { ...newRun(1, "run-1"), gold: 0 };
     expect(rerollBlocker(run)).toBe("Not enough gold");
     expect(rerollShop(run)).toBe(run);
   });
@@ -124,5 +126,21 @@ describe("move", () => {
     const run = runWith(["pot-lid", "hunting-bow", null, null, null, null]);
     expect(moveBlocker(run, from, to)).toBe(reason);
     expect(moveItem(run, from, to)).toBe(run);
+  });
+});
+
+describe("hall of fame submission", () => {
+  test("a new run has its id and is not submitted", () => {
+    expect(newRun(1, "abc")).toMatchObject({ runId: "abc", submitted: false });
+  });
+
+  test("a finished run can be marked as submitted", () => {
+    const finished = { ...newRun(1, "run-1"), wins: WINS_TO_VICTORY };
+    expect(markSubmitted(finished).submitted).toBe(true);
+  });
+
+  test("a run that is still going stays unchanged", () => {
+    const run = newRun(1, "run-1");
+    expect(markSubmitted(run)).toBe(run);
   });
 });

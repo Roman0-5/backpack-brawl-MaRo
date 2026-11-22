@@ -4,7 +4,7 @@ import type { GameState, Opponent } from "./types";
 
 /** Neues Spiel mit einem Item im Rucksack, damit die Suche erlaubt ist. */
 function readyGame(): GameState {
-  const game = newGame(1);
+  const game = newGame(1, "run-1");
   const backpack = [...game.run.backpack];
   backpack[0] = { uid: "item-1", itemId: "pot-lid" };
   return { ...game, run: { ...game.run, backpack } };

@@ -39,6 +39,10 @@ export type ShopOffers = (string | null)[];
 export type Phase = "shop" | "searching" | "battle" | "finished";
 
 export interface RunState {
+  /** Identifies the run, e.g. so the hall of fame never lists it twice (B7). */
+  runId: string;
+  /** Whether the finished run was entered in the hall of fame (B7). */
+  submitted: boolean;
   round: number;
   gold: number;
   lives: number;
