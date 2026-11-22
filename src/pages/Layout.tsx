@@ -1,4 +1,4 @@
-import { Link, Outlet } from "react-router";
+import { Link, NavLink, Outlet } from "react-router";
 import { ROUTES } from "../game";
 
 export function Layout() {
@@ -10,6 +10,16 @@ export function Layout() {
             🎒 Backpack <span className="text-gold">Brawl</span>
           </Link>
         </h1>
+        <nav>
+          <NavLink
+            to={ROUTES.hallOfFame}
+            className={({ isActive }) =>
+              `rounded-md border px-3 py-1.5 font-display text-sm font-bold ${isActive ? "border-gold bg-gold/15 text-gold" : "border-panel-edge text-parchment hover:border-gold"}`
+            }
+          >
+            🏆 Hall of Fame
+          </NavLink>
+        </nav>
       </header>
 
       <main className="flex flex-1 flex-col gap-4 py-6">

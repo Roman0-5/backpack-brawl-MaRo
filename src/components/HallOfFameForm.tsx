@@ -1,4 +1,6 @@
 import { useRef, useState, type FormEvent } from "react";
+import { Link } from "react-router";
+import { ROUTES } from "../game";
 import { HallOfFameError, nameBlocker, NAME_MAX_LENGTH, submitRun, type HallOfFameEntry } from "../hallOfFame";
 import type { RunState } from "../types";
 
@@ -45,7 +47,7 @@ export function HallOfFameForm({ run, onSubmitted }: { run: RunState; onSubmitte
     const { entry } = submission;
     return (
       <p role="status" className="font-bold text-gold">
-        🏆 {entry.name} entered the hall of fame at rank #{entry.rank}.
+        🏆 {entry.name} entered the hall of fame at rank #{entry.rank}. <HallOfFameLink />
       </p>
     );
   }
@@ -53,7 +55,7 @@ export function HallOfFameForm({ run, onSubmitted }: { run: RunState; onSubmitte
   if (run.submitted) {
     return (
       <p role="status" className="font-bold text-gold">
-        🏆 This run is already in the hall of fame.
+        🏆 This run is already in the hall of fame. <HallOfFameLink />
       </p>
     );
   }
@@ -100,5 +102,13 @@ export function HallOfFameForm({ run, onSubmitted }: { run: RunState; onSubmitte
         )}
       </div>
     </form>
+  );
+}
+
+function HallOfFameLink() {
+  return (
+    <Link to={ROUTES.hallOfFame} className="whitespace-nowrap underline underline-offset-4 hover:brightness-110">
+      View the list
+    </Link>
   );
 }

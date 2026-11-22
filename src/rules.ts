@@ -46,6 +46,9 @@ export function setHelp(set: SetId): string {
   return `${icon} ${name} set: while a backpack holds ${SET_THRESHOLD} or more different ${name} items, ${describeSetBonus(set)}. Works for opponents too.`;
 }
 
+/** How the hall of fame is ordered (B7); the server sorts the same way (`compareRuns` in server/runs.ts). */
+export const RANKING_RULE = `Ranked by wins (every victory has ${WINS_TO_VICTORY}), then by lives left, then by who got there first.`;
+
 export interface RuleSection {
   title: string;
   rules: string[];
