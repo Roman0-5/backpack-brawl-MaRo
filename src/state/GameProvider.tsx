@@ -39,7 +39,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     notice,
     startNewRun: () => {
       setNotice(null);
-      setGame(newGame(randomSeed()));
+      setGame(newGame(randomSeed(), crypto.randomUUID()));
     },
     update: (transition) => setGame((current) => (current ? transition(current) : current)),
   };

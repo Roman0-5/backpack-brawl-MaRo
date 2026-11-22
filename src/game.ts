@@ -1,5 +1,5 @@
 import { buildOpponentFighter, buildPlayerFighter, simulateBattle } from "./battle";
-import { applyBattleResult, newRun, runOutcome } from "./run";
+import { applyBattleResult, markSubmitted, newRun, runOutcome } from "./run";
 import { itemIdsOf } from "./shop";
 import type { BattleReplay, GameState, Opponent, RunState } from "./types";
 
@@ -8,8 +8,8 @@ import type { BattleReplay, GameState, Opponent, RunState } from "./types";
  * Every function is pure, so they can be passed straight to `setState`.
  */
 
-export function newGame(seed: number): GameState {
-  return { phase: "shop", run: newRun(seed), battle: null, error: null, searchId: null };
+export function newGame(seed: number, runId: string): GameState {
+  return { phase: "shop", run: newRun(seed, runId), battle: null, error: null, searchId: null };
 }
 
 /** Applies a shop/backpack action; only allowed while shopping. */
@@ -79,8 +79,15 @@ export function leaveBattle(game: GameState): GameState {
   return { ...game, phase: runOutcome(game.run) ? "finished" : "shop", battle: null };
 }
 
+/** Records that the finished run is in the hall of fame, so it is never sent again (also after a reload). */
+export function markRunSubmitted(game: GameState): GameState {
+  if (game.phase !== "finished") return game;
+  const run = markSubmitted(game.run);
+  return run === game.run ? game : { ...game, run };
+}
+
 /** URL paths of the app's screens. */
-export const ROUTES = { start: "/", shop: "/shop", battle: "/battle", result: "/result" } as const;
+export const ROUTES = { start: "/", shop: "/shop", battle: "/battle", result: "/result", hallOfFame: "/hall-of-fame" } as const;
 export type GameRoute = (typeof ROUTES)[keyof typeof ROUTES];
 
 /**

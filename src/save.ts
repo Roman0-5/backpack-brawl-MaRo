@@ -11,7 +11,7 @@ import type { Backpack, GameState, Opponent, Phase, RunState, ShopOffers } from 
  */
 
 /** Bump when the stored shape changes; older saves are then discarded as incompatible. */
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 export const SAVE_KEY = "backpack-brawl/save";
 
 /** Shown in the fight bar, which adds "Try again." itself. */
@@ -101,20 +101,23 @@ function restore(data: unknown): GameState {
 
 function parseRun(value: unknown): RunState {
   check(isRecord(value), "run is not an object");
-  const { round, gold, lives, wins, seed, nextUid } = value;
+  const { runId, submitted, round, gold, lives, wins, seed, nextUid } = value;
+  check(typeof runId === "string" && runId !== "", "runId");
+  check(typeof submitted === "boolean", "submitted");
   check(isInt(round, 1), "round");
   check(isInt(gold, 0), "gold");
   check(isInt(lives, 0, START_LIVES), "lives");
   check(isInt(wins, 0, WINS_TO_VICTORY), "wins");
   check(isInt(seed, 0, 2 ** 32 - 1), "seed");
   check(isInt(nextUid, 1), "nextUid");
-  const run: RunState = { round, gold, lives, wins, seed, nextUid, shop: parseShop(value.shop), backpack: parseBackpack(value.backpack) };
+  const run: RunState = { runId, submitted, round, gold, lives, wins, seed, nextUid, shop: parseShop(value.shop), backpack: parseBackpack(value.backpack) };
 
   // Consistency: the round must match the battles fought. Each battle ends a round,
   // except the last one, which ends the run instead.
   check(!(wins >= WINS_TO_VICTORY && lives <= 0), "won and lost at the same time");
   const expectedRound = battlesFought(run) + (runOutcome(run) ? 0 : 1);
   check(round === expectedRound, "round does not match wins and lives");
+  check(!submitted || runOutcome(run) !== null, "submitted before the run ended");
   return run;
 }
 

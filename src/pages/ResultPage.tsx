@@ -1,10 +1,12 @@
+import { HallOfFameForm } from "../components/HallOfFameForm";
 import { RunHeader } from "../components/RunHeader";
 import { RunOver } from "../components/RunOver";
+import { markRunSubmitted } from "../game";
 import { runOutcome } from "../run";
 import { useActiveGame } from "../state/GameContext";
 
 export function ResultPage() {
-  const { game, startNewRun } = useActiveGame();
+  const { game, startNewRun, update } = useActiveGame();
   const outcome = runOutcome(game.run);
   if (!outcome) return null;
 
@@ -12,7 +14,9 @@ export function ResultPage() {
   return (
     <>
       <RunHeader run={game.run} />
-      <RunOver run={game.run} outcome={outcome} onNewRun={startNewRun} />
+      <RunOver run={game.run} outcome={outcome} onNewRun={startNewRun}>
+        <HallOfFameForm run={game.run} onSubmitted={() => update(markRunSubmitted)} />
+      </RunOver>
     </>
   );
 }

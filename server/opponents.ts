@@ -1,9 +1,11 @@
+import type { Opponent } from "../src/types.ts";
+
 /**
  * Hand-built opponents, one per round. A run lasts at most 7 rounds (5 wins + 3 lives − 1),
  * so the table covers every round. Item ids must exist in src/items.ts.
  * Rounds past the table reuse the last opponent with more HP (see `opponentForRound`).
  */
-export const OPPONENTS = [
+export const OPPONENTS: Omit<Opponent, "round">[] = [
   { id: "mossback-hermit", name: "Mossback Hermit", icon: "🐢", hp: 25, items: ["chipped-dagger", "pot-lid"] },
   { id: "grave-tinker", name: "Grave Tinker", icon: "🦴", hp: 36, items: ["hunting-bow", "chipped-dagger", "oak-buckler"] },
   { id: "tollgate-ogre", name: "Tollgate Ogre", icon: "👹", hp: 44, items: ["hunting-bow", "torch", "poison-dart", "oak-buckler"] },
@@ -21,16 +23,16 @@ export const EXTRA_ITEM = "chipped-dagger";
 export const MAX_ITEMS = 6;
 
 /** Deterministic opponent for a 1-based round number. */
-export function opponentForRound(round) {
+export function opponentForRound(round: number): Opponent {
   const last = OPPONENTS[OPPONENTS.length - 1];
   const base = OPPONENTS[round - 1] ?? last;
   const extra = Math.max(0, round - OPPONENTS.length);
-  const items = [...base.items, ...Array(extra).fill(EXTRA_ITEM)].slice(0, MAX_ITEMS);
+  const items = [...base.items, ...Array<string>(extra).fill(EXTRA_ITEM)].slice(0, MAX_ITEMS);
   return { ...base, round, hp: base.hp + extra * HP_PER_EXTRA_ROUND, items };
 }
 
 /** Parses `?round=`; returns a positive integer or `null` if invalid. */
-export function parseRound(value) {
+export function parseRound(value: unknown): number | null {
   if (typeof value !== "string" || !/^\d+$/.test(value)) return null;
   const round = Number(value);
   return Number.isSafeInteger(round) && round >= 1 ? round : null;

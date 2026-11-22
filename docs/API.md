@@ -1,6 +1,6 @@
 # Backpack Brawl API
 
-The local API is a small Express server in `server/index.js`. It listens on port 4200 (override with the `PORT` environment variable). During Vite development, `/api` is proxied to it, so the frontend uses relative URLs such as `/api/opponents?round=1`. All responses are JSON. The server keeps no state: restarting it changes nothing about the answers.
+The local API is a small Express server in `server/index.ts` (TypeScript, run with `tsx`). It listens on port 4200 (override with the `PORT` environment variable). During Vite development, `/api` is proxied to it, so the frontend uses relative URLs such as `/api/opponents?round=1`. All responses are JSON. The only state on the server is the hall of fame, which lives in memory: restarting the server empties it. Everything else answers the same way every time.
 
 ## `GET /api/health`
 
@@ -12,7 +12,7 @@ Always answers immediately with status 200:
 
 ## `GET /api/opponents`
 
-Returns the opponent for one round of a run. The opponent table lives in `server/opponents.js`.
+Returns the opponent for one round of a run. The opponent table lives in `server/opponents.ts`.
 
 ### Query parameters
 
@@ -63,16 +63,108 @@ Every error response has the shape:
 
 An invalid `round` is reported as 400 even when failure is forced. All responses from this endpoint, errors included, arrive after the configured delay.
 
+## Hall of fame
+
+Finished runs are entered with `POST /api/runs` and listed with `GET /api/runs`. The routes are in `server/index.ts`; the rules (validation, ranking) are in `server/runs.ts`, and the entries are kept in memory by `server/runStore.ts`. The TypeScript types `RunSubmission`, `HallOfFameEntry` and `HallOfFameList` in `server/runs.ts` describe the request and response bodies below.
+
+Both endpoints accept the same query parameters as `/api/opponents` for trying out loading and error states:
+
+| Parameter | Meaning |
+|---|---|
+| `latency` | Response delay in milliseconds, clamped to 0–5000. Defaults to 400. |
+| `fail` | `fail=true` forces a 503 response. |
+
+### Ranking
+
+1. More wins first. A victory always has 5 wins, so every victory comes before every defeat.
+2. With equal wins, more lives left. Every round is one battle (a win or a lost life), so this is the same as fewer rounds.
+3. With equal wins and lives, whoever entered first.
+
+`rank` is the 1-based position in this order.
+
+### Entry
+
+| Field | Type | Meaning |
+|---|---|---|
+| `runId` | string | Id the client gave the run when it started (1–64 characters) |
+| `name` | string | Player name, trimmed, 1–20 characters |
+| `wins` | number | Battles won, 0–5 |
+| `lives` | number | Lives left, 0–3 |
+| `rounds` | number | Battles fought |
+| `outcome` | `"victory"` or `"defeat"` | Worked out by the server from `wins` and `lives` |
+| `submittedAt` | string | ISO 8601 time the run was entered |
+| `rank` | number | Position in the ranking |
+
+### `GET /api/runs`
+
+Returns the best 10 runs in ranking order and how many runs were entered in total.
+
+```json
+{
+  "entries": [
+    { "runId": "4f1c…", "name": "Roman", "wins": 5, "lives": 2, "rounds": 6, "outcome": "victory", "submittedAt": "2026-11-22T14:10:58.685Z", "rank": 1 }
+  ],
+  "total": 1
+}
+```
+
+An empty hall of fame answers `{ "entries": [], "total": 0 }`.
+
+### `POST /api/runs`
+
+Enters a finished run. Body (JSON, `Content-Type: application/json`):
+
+```json
+{ "runId": "4f1c…", "name": "Roman", "wins": 5, "lives": 2, "rounds": 6 }
+```
+
+Other fields are ignored. The answer is the stored entry (see above), including its `rank`.
+
+| Status | When |
+|---|---|
+| 201 | The run was entered. |
+| 200 | A run with this `runId` and the same data was already entered. Nothing is added; the existing entry is returned. A client can therefore safely retry a submission whose answer got lost. |
+| 400 | The body is not valid JSON, or the run is invalid or implausible (see below). |
+| 409 | A run with this `runId` was already entered with different data. |
+| 503 | `fail=true`, or the server was started with `API_FAIL=true`. |
+
+### Validation
+
+The server can't replay the battles: it would need the backpack of every round. It checks that the numbers describe a run that can really end this way:
+
+- `runId` is a text of 1–64 characters.
+- `name` is a text that, after trimming, has 1–20 characters (an emoji counts as one) and no control characters such as line breaks.
+- `wins` is a whole number 0–5, `lives` 0–3, `rounds` 1–8.
+- The run is finished: 5 wins or 0 lives, but not both.
+- `rounds` equals `wins` plus lost lives (`3 − lives`).
+
+### Errors
+
+Errors use the usual shape `{ "error": "…" }`; the text can be shown to the player as it is. Examples:
+
+| Status | `error` |
+|---|---|
+| 400 | `The request body must be valid JSON.` |
+| 400 | `The request body must be a JSON object.` |
+| 400 | `Please enter a name.` |
+| 400 | `The name can be at most 20 characters long.` |
+| 400 | `Only finished runs can enter the hall of fame.` |
+| 400 | `rounds doesn't match wins and lost lives.` |
+| 409 | `This run was already entered with different data.` |
+| 503 | `The hall of fame is closed right now.` |
+
 ## Environment variables
 
 | Variable | Effect |
 |---|---|
 | `PORT` | Port to listen on (default 4200). The Vite proxy expects 4200. |
-| `API_LATENCY` | Default delay in milliseconds when a request has no `latency` parameter. |
-| `API_FAIL` | `true` makes every opponent request fail with 503. |
+| `API_LATENCY` | Delay in milliseconds for requests without a `latency` parameter (all endpoints except `/api/health`). |
+| `API_FAIL` | `true` makes every opponent and hall-of-fame request fail with 503. |
 
 Example: `API_FAIL=true pnpm server`.
 
 ## Client
 
 `fetchOpponent(round)` in `src/api.ts` performs the request. It resolves with the `Opponent` on success and throws an `Error` carrying the server's `error` text (or a generic message with the status code) for any non-2xx response. When the API is not running, the Vite proxy answers with an error status of its own, which is reported the same way; a network failure rejects as well.
+
+`submitRun(run, name)` and `fetchHallOfFame()` in `src/hallOfFame.ts` call the hall-of-fame endpoints. They fail with a `HallOfFameError` whose message can be shown to the player (the server's `error` text, or a message for timeout, unreachable server or server error). Requests time out after 8 seconds. Answers are checked at runtime before they are used; the TypeScript types are imported from `server/runs.ts`, so client and server share one definition of the fields. `submitRun` refuses to send a run that isn't finished.

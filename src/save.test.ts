@@ -1,12 +1,12 @@
 import { describe, expect, test } from "vitest";
 import { isReplayDone, newGame, skipReplay, startBattle, startSearch } from "./game";
-import { buyItem } from "./run";
+import { buyItem, markSubmitted, START_LIVES } from "./run";
 import { fromSave, SAVE_DISCARDED, SAVE_VERSION, SEARCH_INTERRUPTED, toSave } from "./save";
 import type { GameState, Opponent } from "./types";
 
 /** Spiel im Shop mit einem gekauften Item. */
 function shopGame(): GameState {
-  const game = newGame(7);
+  const game = newGame(7, "run-7");
   return { ...game, run: buyItem({ ...game.run, gold: 50 }, 0) };
 }
 
@@ -77,6 +77,24 @@ describe("reload during a battle replay", () => {
   });
 });
 
+describe("reload after the run ended", () => {
+  /** Beendeter Run: 3 Niederlagen in 3 Runden. */
+  const finishedGame = (): GameState => {
+    const game = shopGame();
+    return { ...game, phase: "finished", run: { ...game.run, lives: 0, round: START_LIVES } };
+  };
+
+  test("keeps that the run was entered in the hall of fame, so it isn't sent again", () => {
+    const game = finishedGame();
+    const submitted = { ...game, run: markSubmitted(game.run) };
+    expect(reload(submitted).game?.run.submitted).toBe(true);
+  });
+
+  test("keeps the run id", () => {
+    expect(reload(finishedGame()).game?.run.runId).toBe("run-7");
+  });
+});
+
 describe("broken saves fall back to a playable state", () => {
   test("no save: no run, no message", () => {
     expect(fromSave(null)).toEqual({ game: null, notice: null });
@@ -95,6 +113,8 @@ describe("broken saves fall back to a playable state", () => {
     ["duplicated item", () => tampered((s) => (s.run.backpack[1] = s.run.backpack[0]))],
     ["finished without an outcome", () => tampered((s) => (s.phase = "finished"))],
     ["battle without opponent", () => tampered((s) => (s.phase = "battle"))],
+    ["missing run id", () => tampered((s) => delete s.run.runId)],
+    ["submitted mid-run", () => tampered((s) => (s.run.submitted = true))],
   ])("%s is discarded with a message", (_, load) => {
     expect(load()).toEqual({ game: null, notice: SAVE_DISCARDED });
   });
