@@ -166,3 +166,5 @@ Example: `API_FAIL=true pnpm server`.
 ## Client
 
 `fetchOpponent(round)` in `src/api.ts` performs the request. It resolves with the `Opponent` on success and throws an `Error` carrying the server's `error` text (or a generic message with the status code) for any non-2xx response. When the API is not running, the Vite proxy answers with an error status of its own, which is reported the same way; a network failure rejects as well.
+
+`submitRun(run, name)` and `fetchHallOfFame()` in `src/hallOfFame.ts` call the hall-of-fame endpoints. They fail with a `HallOfFameError` whose message can be shown to the player (the server's `error` text, or a message for timeout, unreachable server or server error). Requests time out after 8 seconds. Answers are checked at runtime before they are used; the TypeScript types are imported from `server/runs.ts`, so client and server share one definition of the fields. `submitRun` refuses to send a run that isn't finished.
