@@ -1,16 +1,16 @@
 # Backpack Brawl – Standort und Setup
 
-Stand: 2026-11-21 (nach B3, B4, B5). Abgabe: nächsten Freitag. Diagramm: `docs/diagrams/status.svg` (Quelle `docs/diagrams/status.d2`).
+Stand: 2026-11-22 (B1–B7 fertig). Abgabe: Freitag. Diagramm: `docs/diagrams/status.svg` (Quelle `docs/diagrams/status.d2`).
 Neu rendern: `d2 --layout=elk docs/diagrams/status.d2 docs/diagrams/status.svg` (ebenso `split.d2`)
 
 ## Wo wir stehen
 
-B1–B5 sind umgesetzt und per PR (#1–#5) nach `main` gemergt. Offen: B6, B7 und die Qualitätsziele. Die Spielregeln liegen als reine TypeScript-Module ohne React vor (`run.ts`, `shop.ts`, `game.ts`, `battle.ts`, `items.ts`, `sets.ts`, `rules.ts`), dazu `api.ts` für die API-Anbindung. Frontend: React, Vite, Tailwind, react-router (Port 5174). Server: Express (Port 4200) mit `/api/health` und `/api/opponents`. Tests: 93 Vitest-Unit-Tests (`run`, `battle`, `items`, `sets`, `game`, `api`).
+B1–B7 sind umgesetzt und per PR (#1–#5, #7, #8) nach `main` gemergt, dazu der Karten-Fix (PR #6). Offen: Qualitätsziele, im Diary „Nicht umgesetzte Requirements“ und die Final Reflection.
 
-Die zwei Bugs aus dem Starter, die zu B5 gehörten, sind behoben (PR #4):
-
-- `searchFailed` ließ die Phase auf `searching`; nach einem API-Fehler hing die Suche.
-- `startBattle` prüfte weder Runde noch Such-ID; eine späte Antwort konnte einen Kampf starten.
+- **Frontend:** React, Vite, Tailwind, react-router (Port 5174). Spielregeln als reine TypeScript-Module ohne React (`run.ts`, `shop.ts`, `game.ts`, `battle.ts`, `items.ts`, `sets.ts`, `rules.ts`), Ränder nach außen mit Laufzeitprüfung (`api.ts` Gegner, `save.ts` localStorage, `hallOfFame.ts` Hall of Fame). Seiten: Start, Shop, Kampf, Ergebnis, Hall of Fame.
+- **Server:** Express in TypeScript (Port 4200), gestartet mit `tsx`, Typcheck über `tsconfig.server.json` im Build. Endpoints `/api/health`, `/api/opponents`, `GET`/`POST /api/runs`. Regeln der Hall of Fame in `server/runs.ts`, Speicher in-memory hinter `server/runStore.ts`. Doku: `docs/API.md`.
+- **Tests:** 173 Vitest-Unit-Tests (`run`, `battle`, `items`, `sets`, `game`, `api`, `save`, `hallOfFame`, `server/runs`).
+- **Nach dem Pull:** `npm install` (seit B7 neu: `tsx`, `@types/express`, `@types/cors`).
 
 ## Anforderungen
 
@@ -21,11 +21,11 @@ Die zwei Bugs aus dem Starter, die zu B5 gehörten, sind behoben (PR #4):
 | B3 Poison / Heal               |     15% | Roman    | ✓ gemergt (PR #3, `e5f29c2`) | `types.ts`, `battle.ts`, `items.ts`, `server/opponents.js`, `BattleView.tsx`, `rules.ts` |
 | B4 Sets + Burn                 |     20% | Roman    | ✓ gemergt (PR #5, `30098b0`) | `sets.ts`, `battle.ts`, `items.ts`, `server/opponents.js`, `SetBadge.tsx`, `Backpack.tsx`, `BattleView.tsx`, `rules.ts` |
 | B5 Matchmaking                 |     10% | Matthias | ✓ gemergt (PR #4, `498091d`) | `game.ts`, `api.ts`, `ShopPage.tsx`                                                    |
-| B6 Save / Resume               |     10% | Matthias | fehlt                         | `GameProvider.tsx`, Validierung des Saves                                              |
-| B7 Hall of Fame                |     20% | Roman    | fehlt                         | `server/index.js`, neue Page, `docs/API.md`                                            |
+| B6 Save / Resume               |     10% | Matthias | ✓ gemergt (PR #7, `5c9959c`) | `save.ts`, `GameProvider.tsx`, `StartPage.tsx`, `rules.ts`                              |
+| B7 Hall of Fame                |     20% | Roman    | ✓ gemergt (PR #8, `ec19405`) | `server/runs.ts`, `server/index.ts`, `hallOfFame.ts`, `HallOfFameForm.tsx`, `HallOfFamePage.tsx`, `docs/API.md` |
 | Qualitätsziele                 |       – | beide    | fehlt                         | Doku, in der Prüfung verteidigen                                                       |
 
-Offen sind B6 (Matthias) und B7 (Roman). B7 ist mit 20 % das größte offene Feature und das einzige mit nennenswertem Backend-Anteil (neue Endpoints, Validierung, `docs/API.md`). B6 muss mit der Laufzeitprüfung aus B5 (Entscheidung 7) zusammenpassen: gespeicherte Daten sind wie API-Antworten eine Grenze nach außen.
+Alle funktionalen Anforderungen sind umgesetzt. Offen sind die Qualitätsziele (Auswahl, Begründung, Evaluation), die beide in der mündlichen Prüfung verteidigen müssen, und der Abschluss des Diary.
 
 ## Aufteilung nach Feature
 
@@ -33,11 +33,11 @@ Beschlossen: Die Arbeit wird nach Feature aufgeteilt, nicht nach Schicht (Fronte
 
 | Person | Features |
 | ------ | -------- |
-| Matthias | B1 ✓, B2 ✓, B5 ✓, B6 |
-| Roman    | B3 ✓, B4 ✓, B7       |
+| Matthias | B1 ✓, B2 ✓, B5 ✓, B6 ✓ |
+| Roman    | B3 ✓, B4 ✓, B7 ✓       |
 
 - B7 liegt in einer Hand (Roman), dann gibt es keine Abstimmung über den API-Vertrag (Endpoints, Felder, Fehlerformat, Ranking-Regel). B3/B4 und die Gegner-Tabelle (`server/opponents.js`) liegen ebenfalls bei Roman, ein Vertrag ist also nicht nötig.
-- Konfliktstellen: `types.ts`/`battle.ts`/`items.ts` (B3 und B4, beide Roman, erledigt), `run.ts`/`Backpack.tsx` (B1 und B2, beide Matthias, erledigt), `game.ts`/`ShopPage.tsx`/`GameProvider.tsx` (B5 erledigt, B6 offen, beide Matthias). Einzige echte Überschneidung: `rules.ts` (Regeltexte aller Features), dort nur neue Abschnitte anhängen.
+- Konfliktstellen: `types.ts`/`battle.ts`/`items.ts` (B3 und B4, beide Roman, erledigt), `run.ts`/`Backpack.tsx` (B1 und B2, beide Matthias, erledigt), `game.ts`/`ShopPage.tsx`/`GameProvider.tsx` (B5 und B6, beide Matthias, erledigt). B7 hat `save.ts` aus B6 an einer Stelle erweitert (`runId`, `submitted`). Einzige echte Überschneidung: `rules.ts` (Regeltexte aller Features), dort nur neue Abschnitte anhängen.
 - UI-Redesign berührt fast alle Komponenten: erst nach den Features oder klar einer Person zuordnen.
 - Gemeinsam bleiben: Qualitätsziele, `docs/API.md`, Diary.
 
@@ -57,4 +57,5 @@ Die UI darf frei umgebaut werden, solange die Pflicht-UI aus B1–B7 erhalten bl
 
 - `npm run lint && npm test && npm run build` grün.
 - `npm run dev`: Start, Shop, Fight, Result durchspielen.
+- `npm run dev`: Run beenden, Namen eintragen (auch mit Offline + Retry), Hall of Fame öffnen, F5 auf `/hall-of-fame`.
 - Pages: Deploy grün, Refresh auf `/shop` bricht nicht.

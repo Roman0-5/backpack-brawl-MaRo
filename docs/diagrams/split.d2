@@ -16,7 +16,7 @@ legend: Legende {
   n: nichts nötig { class: none }
 }
 
-reqs: "Anforderungen (✓ = umgesetzt und gemergt, Stand 2026-11-21)" {
+reqs: "Anforderungen (✓ = umgesetzt und gemergt, Stand 2026-11-22)" {
   grid-columns: 2
   grid-gap: 20
 
@@ -40,14 +40,14 @@ reqs: "Anforderungen (✓ = umgesetzt und gemergt, Stand 2026-11-21)" {
     fe: "FE ✓\nSuch-ID + Runden-Guard, Phase nach Fehler,\nDoppelstart sperren, Fehlermeldung + Retry" { class: fe }
     be: "BE\nkeine Änderung\n(latency/fail-Parameter zum Testen vorhanden)" { class: none }
   }
-  b6: "B6 Save / Resume · 10% · Matthias" {
-    fe: "FE\nlocalStorage, Validierung, Fallback,\nPolicy bei Refresh in Suche/Replay" { class: fe }
+  b6: "B6 Save / Resume · 10% · Matthias ✓" {
+    fe: "FE ✓\nsave.ts: localStorage, Validierung, Fallback,\nPolicy bei Refresh in Suche/Replay, Continue run" { class: fe }
     be: "BE\nkeine Änderung" { class: none }
   }
-  b7: "B7 Hall of Fame · 20% · Roman" {
-    fe: "FE\nName am Run-Ende, eigene Seite,\nLaden/Leer/Fehler, Retry, kein Doppel-Submit" { class: fe }
-    be: "BE\nPOST + GET, Validierung (plausibel?),\nRanking, In-Memory, docs/API.md" { class: be }
-    api: "Vertrag: Endpoints, Felder,\nFehlerformat, Ranking-Regel" { class: shared }
+  b7: "B7 Hall of Fame · 20% · Roman ✓" {
+    fe: "FE ✓\nName am Run-Ende, eigene Seite,\nLaden/Leer/Fehler, Retry, kein Doppel-Submit,\nrunId im Save" { class: fe }
+    be: "BE ✓\nServer auf TypeScript (tsx),\nPOST + GET, Plausibilität, Ranking,\nIn-Memory-Store, docs/API.md" { class: be }
+    api: "Vertrag ✓: Typen in server/runs.ts,\nClient per import type, Fehlerformat { error }" { class: shared }
     fe -> api
     be -> api
   }
@@ -64,7 +64,8 @@ summary: "Einschätzung (Schätzung, kein Messwert)" {
 hot: "Konfliktstellen bei paralleler Arbeit" {
   a: "types.ts, battle.ts, items.ts\n(B3 ✓ + B4 ✓: beide Roman, nacheinander)" { class: none }
   b: "run.ts, Backpack.tsx\n(B1 ✓ + B2 ✓: beide Matthias)" { class: none }
-  c: "game.ts, ShopPage.tsx, GameProvider.tsx\n(B5 ✓ + B6: beide Matthias)" { class: none }
+  c: "game.ts, ShopPage.tsx, GameProvider.tsx\n(B5 ✓ + B6 ✓: beide Matthias)" { class: none }
   e: "rules.ts: Regeltexte von allen Features\n(nur neue Abschnitte anhängen)" { class: none }
+  f: "save.ts: B6 (Matthias), von B7 um runId\nund submitted erweitert (Version 2)" { class: none }
   d: "UI-Redesign berührt fast alle Komponenten" { class: none }
 }

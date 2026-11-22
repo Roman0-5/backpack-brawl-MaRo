@@ -6,46 +6,51 @@ classes: {
   todo: { style: { fill: "#fee2e2"; stroke: "#dc2626"; font-color: "#7f1d1d"; stroke-dash: 4 } }
 }
 
-legend: "Legende (Stand 2026-11-21, nach B1–B5)" {
+legend: "Legende (Stand 2026-11-22, B1–B7 fertig)" {
   d: "fertig / bleibt\n✓ = umgesetzt" { class: done }
-  p: "teilweise umgesetzt,\noffene B# folgen" { class: part }
-  t: "neu, noch offen (B#)" { class: todo }
+  p: "teilweise umgesetzt" { class: part }
+  t: "offen" { class: todo }
 }
 
 browser: Browser (React + Vite) {
   pages: Pages {
-    start: StartPage { class: done }
+    start: "StartPage\nB6 ✓ Continue run, Meldung bei verworfenem Save" { class: done }
     shop: "ShopPage\nB1 ✓ Verkaufen/Reroll-Buttons\nB5 ✓ Suchzustand, Fehlermeldung, Retry" { class: done }
     battle: "BattlePage / BattleView\nB3 ✓ Poison-Zähler, Log-Farben\nB4 ✓ Burn-Zähler, Set-Badges,\naktive Sets + Fortschritt" { class: done }
-    result: "ResultPage\nB7: Name + Submit" { class: part }
-    hof: "HallOfFamePage\nB7" { class: todo }
+    result: "ResultPage + HallOfFameForm\nB7 ✓ Name eintragen, Retry,\nkein Doppel-Submit (useRunSubmission)" { class: done }
+    hof: "HallOfFamePage\nB7 ✓ Laden/Leer/Fehler, Retry,\neigener Eintrag markiert (useHallOfFame)" { class: done }
   }
   components: Komponenten {
     backpack: "Backpack.tsx\nB1 ✓ Verkaufen\nB2 ✓ Auswahl, mögliche Züge, Abbrechen\nB4 ✓ Set-Badges, Set-Fortschritt" { class: done }
     setbadge: "SetBadge.tsx\nB4 ✓ Badge + Bonus-Tooltip\n(Shop, Rucksack, Kampf)" { class: done }
-    rulespanel: "RulesPanel / rules.ts\nB1–B4 ✓ Regeltexte, Tooltips" { class: done }
+    rulespanel: "RulesPanel / rules.ts\nB1–B7 ✓ Regeltexte, Tooltips,\nRanking-Regel" { class: done }
   }
   state: State {
-    provider: "GameProvider\n(nur useState)\nB6: Save laden/schreiben" { class: part }
-    save: "Save-Modul (localStorage)\nB6: Validierung + Fallback" { class: todo }
+    provider: "GameProvider\nB6 ✓ Save laden/schreiben\nB7 ✓ runId beim Start" { class: done }
+    save: "save.ts (localStorage)\nB6 ✓ Validierung + Fallback\nB7 ✓ runId, submitted (Version 2)" { class: done }
   }
   rules: Regeln (reines TS, ohne React) {
-    run: "run.ts\nkaufen\nB1 ✓ verkaufen, reroll\nB2 ✓ verschieben / tauschen" { class: done }
+    run: "run.ts\nkaufen\nB1 ✓ verkaufen, reroll\nB2 ✓ verschieben / tauschen\nB7 ✓ markSubmitted" { class: done }
     shopts: "shop.ts\nseeded RNG" { class: done }
-    game: "game.ts\nPhasen\nB5 ✓ Such-ID, Runden-Guard" { class: done }
+    game: "game.ts\nPhasen\nB5 ✓ Such-ID, Runden-Guard\nB7 ✓ markRunSubmitted, Route" { class: done }
     api: "api.ts\nB5 ✓ Timeout, Laufzeitprüfung,\nverständliche Fehler" { class: done }
+    hofts: "hallOfFame.ts\nB7 ✓ submitRun, fetchHallOfFame,\nLaufzeitprüfung, Typen vom Server" { class: done }
     battle: "battle.ts\nDamage + Block\nB3 ✓ Poison (Stacks, Tick), Heal\nB4 ✓ Burn (Block, halbiert sich),\nSet-Boni beim Fighter-Bau" { class: done }
     sets: "sets.ts\nB4 ✓ Fire + Iron, ab 2 verschiedenen Items,\nBoni für Spieler und Gegner" { class: done }
     items: "items.ts\n15 Items\nB3 ✓ je 3 Poison- und Heal-Items\nB4 ✓ 3 Fire-Items, Iron aus Schilden" { class: done }
   }
-  tests: "Vitest-Tests (93)\nrun (B1, B2), battle, items (B3, B4),\nsets (B4), game, api (B5)" { class: done }
+  tests: "Vitest-Tests (173)\nrun, battle, items, sets, game,\napi, save, hallOfFame, server/runs" { class: done }
 }
 
-server: Express API {
+server: "Express API (TypeScript, tsx)" {
   health: "GET /api/health" { class: done }
   opp: "GET /api/opponents\nB3 ✓ Poison/Heal\nB4 ✓ Gegner mit Fire-/Iron-Set" { class: done }
-  runs: "POST / GET /api/runs\nB7: Validierung, Ranking,\nIn-Memory" { class: todo }
+  runs: "GET / POST /api/runs\nB7 ✓ Plausibilität, Ranking,\nidempotent über runId" { class: done }
+  runsts: "runs.ts + runStore.ts\nB7 ✓ reine Regeln, In-Memory-Store\nhinter Interface" { class: done }
+  runs -> runsts
 }
+
+quality: "Qualitätsziele\nauswählen, begründen, evaluieren" { class: todo }
 
 browser.pages.shop -> browser.rules.run
 browser.pages.shop -> browser.components.backpack
@@ -58,7 +63,9 @@ browser.rules.battle -> browser.rules.sets
 browser.rules.battle -> browser.rules.items
 browser.rules.sets -> browser.rules.items
 browser.rules.game -> browser.state.provider
-browser.state.provider -> browser.state.save: B6 { style.stroke-dash: 4 }
+browser.state.provider -> browser.state.save
+browser.pages.result -> browser.rules.hofts
+browser.pages.hof -> browser.rules.hofts
 browser.rules.api -> server.opp: fetchOpponent { style.stroke: "#059669" }
-browser.pages.result -> server.runs: B7 { style.stroke-dash: 4; style.stroke: "#dc2626" }
-browser.pages.hof -> server.runs: B7 { style.stroke-dash: 4; style.stroke: "#dc2626" }
+browser.rules.hofts -> server.runs: "submitRun / fetchHallOfFame" { style.stroke: "#059669" }
+browser.rules.hofts -> server.runsts: "import type (Vertrag)" { style.stroke-dash: 4 }
