@@ -5,18 +5,20 @@ classes: {
   fe: { style: { fill: "#dbeafe"; stroke: "#2563eb"; font-color: "#1e3a8a" } }
   be: { style: { fill: "#ffedd5"; stroke: "#ea580c"; font-color: "#7c2d12" } }
   none: { style: { fill: "#f3f4f6"; stroke: "#9ca3af"; font-color: "#6b7280"; stroke-dash: 4 } }
+  ext: { style: { fill: "#ffffff"; stroke: "#9ca3af"; font-color: "#6b7280"; stroke-dash: 2 } }
   shared: { style: { fill: "#ede9fe"; stroke: "#7c3aed"; font-color: "#4c1d95" } }
 }
 
 legend: Legende {
-  grid-columns: 4
+  grid-columns: 5
   f: Frontend (src/) { class: fe }
   b: Backend (server/) { class: be }
   s: Vertrag FE<->BE { class: shared }
   n: nichts nötig { class: none }
+  x: "mögliche Erweiterung\n(nicht umgesetzt)" { class: ext }
 }
 
-reqs: "Anforderungen (✓ = umgesetzt und gemergt, Stand 2026-11-22)" {
+reqs: "Anforderungen (✓ = umgesetzt und gemergt, Stand 2026-11-26)" {
   grid-columns: 2
   grid-gap: 20
 
@@ -30,11 +32,11 @@ reqs: "Anforderungen (✓ = umgesetzt und gemergt, Stand 2026-11-22)" {
   }
   b3: "B3 Poison / Heal · 15% · Roman ✓" {
     fe: "FE ✓\nbattle.ts (Poison-Tick, Heal), 6 neue Items,\nPoison-Zähler, Log, Rules, Tooltips, 24 Tests" { class: fe }
-    be: "BE ✓\nopponents.js: Gegner ab Runde 3\nnutzen Poison/Heal" { class: be }
+    be: "BE ✓\nopponents.ts: Gegner ab Runde 3\nnutzen Poison/Heal" { class: be }
   }
   b4: "B4 Sets + Burn · 20% · Roman ✓" {
     fe: "FE ✓\nsets.ts (Fire, Iron), Boni beim Fighter-Bau, Burn,\nBadges, Set-Fortschritt, Burn-Zähler, Rules, 27 Tests" { class: fe }
-    be: "BE ✓\nopponents.js: Gegner mit Fire-/Iron-Set" { class: be }
+    be: "BE ✓\nopponents.ts: Gegner mit Fire-/Iron-Set" { class: be }
   }
   b5: "B5 Matchmaking · 10% · Matthias ✓" {
     fe: "FE ✓\nSuch-ID + Runden-Guard, Phase nach Fehler,\nDoppelstart sperren, Fehlermeldung + Retry" { class: fe }
@@ -51,8 +53,8 @@ reqs: "Anforderungen (✓ = umgesetzt und gemergt, Stand 2026-11-22)" {
     fe -> api
     be -> api
   }
-  nf: "Qualitätsziele" {
-    both: "beide: Ziele wählen, begründen,\nevaluieren, mündlich verteidigen" { class: shared }
+  nf: "Qualitätsziele · beide ✓" {
+    both: "✓ docs/QUALITY.md: Korrektheit, Zuverlässigkeit,\nVerständlichkeit, Wartbarkeit\ngewählt, begründet, geprüft (f89a929)" { class: shared }
   }
 }
 
@@ -67,5 +69,10 @@ hot: "Konfliktstellen bei paralleler Arbeit" {
   c: "game.ts, ShopPage.tsx, GameProvider.tsx\n(B5 ✓ + B6 ✓: beide Matthias)" { class: none }
   e: "rules.ts: Regeltexte von allen Features\n(nur neue Abschnitte anhängen)" { class: none }
   f: "save.ts: B6 (Matthias), von B7 um runId\nund submitted erweitert (Version 2)" { class: none }
-  d: "UI-Redesign berührt fast alle Komponenten" { class: none }
+}
+
+maybe: "Mögliche Erweiterungen (keine Anforderung, bewusst weggelassen)" {
+  ui: "UI-Redesign\nwürde fast alle Komponenten berühren" { class: ext }
+  a11y: "Barrierefreiheit\n(Tastatur, Screenreader)" { class: ext }
+  db: "persistenter Speicher für die Hall of Fame\n(statt In-Memory, Interface in runStore.ts vorhanden)" { class: ext }
 }

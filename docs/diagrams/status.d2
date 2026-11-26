@@ -2,14 +2,12 @@ direction: right
 
 classes: {
   done: { style: { fill: "#d1fae5"; stroke: "#059669"; font-color: "#064e3b" } }
-  part: { style: { fill: "#fef3c7"; stroke: "#d97706"; font-color: "#78350f" } }
-  todo: { style: { fill: "#fee2e2"; stroke: "#dc2626"; font-color: "#7f1d1d"; stroke-dash: 4 } }
+  ext: { style: { fill: "#ffffff"; stroke: "#9ca3af"; font-color: "#6b7280"; stroke-dash: 4 } }
 }
 
-legend: "Legende (Stand 2026-11-22, B1–B7 fertig)" {
+legend: "Legende (Stand 2026-11-26, B1–B7 + Qualitätsziele fertig)" {
   d: "fertig / bleibt\n✓ = umgesetzt" { class: done }
-  p: "teilweise umgesetzt" { class: part }
-  t: "offen" { class: todo }
+  x: "mögliche Erweiterung\n(nicht umgesetzt)" { class: ext }
 }
 
 browser: Browser (React + Vite) {
@@ -44,13 +42,19 @@ browser: Browser (React + Vite) {
 
 server: "Express API (TypeScript, tsx)" {
   health: "GET /api/health" { class: done }
-  opp: "GET /api/opponents\nB3 ✓ Poison/Heal\nB4 ✓ Gegner mit Fire-/Iron-Set" { class: done }
+  opp: "GET /api/opponents (opponents.ts)\nB3 ✓ Poison/Heal\nB4 ✓ Gegner mit Fire-/Iron-Set" { class: done }
   runs: "GET / POST /api/runs\nB7 ✓ Plausibilität, Ranking,\nidempotent über runId" { class: done }
   runsts: "runs.ts + runStore.ts\nB7 ✓ reine Regeln, In-Memory-Store\nhinter Interface" { class: done }
   runs -> runsts
 }
 
-quality: "Qualitätsziele\nauswählen, begründen, evaluieren" { class: todo }
+quality: "Qualitätsziele ✓ (docs/QUALITY.md)\nKorrektheit, Zuverlässigkeit,\nVerständlichkeit, Wartbarkeit" { class: done }
+
+maybe: "Mögliche Erweiterungen (bewusst weggelassen)" {
+  ui: "UI-Redesign" { class: ext }
+  a11y: "Barrierefreiheit" { class: ext }
+  db: "persistente Hall of Fame\n(statt In-Memory)" { class: ext }
+}
 
 browser.pages.shop -> browser.rules.run
 browser.pages.shop -> browser.components.backpack
