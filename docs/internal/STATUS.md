@@ -1,11 +1,11 @@
 # Backpack Brawl – Standort und Setup
 
-Stand: 2026-11-22 (B1–B7 fertig). Abgabe: Freitag. Diagramm: `docs/diagrams/status.svg` (Quelle `docs/diagrams/status.d2`).
+Stand: 2026-11-26 (B1–B7 und Qualitätsziele fertig). Abgabe: Freitag. Diagramm: `docs/diagrams/status.svg` (Quelle `docs/diagrams/status.d2`).
 Neu rendern: `d2 --layout=elk docs/diagrams/status.d2 docs/diagrams/status.svg` (ebenso `split.d2`)
 
 ## Wo wir stehen
 
-B1–B7 sind umgesetzt und per PR (#1–#5, #7, #8) nach `main` gemergt, dazu der Karten-Fix (PR #6). Offen: Qualitätsziele, im Diary „Nicht umgesetzte Requirements“ und die Final Reflection.
+B1–B7 sind umgesetzt und per PR (#1–#5, #7, #8) nach `main` gemergt, dazu der Karten-Fix (PR #6). Offen: nur noch die Final Reflection im Diary.
 
 - **Frontend:** React, Vite, Tailwind, react-router (Port 5174). Spielregeln als reine TypeScript-Module ohne React (`run.ts`, `shop.ts`, `game.ts`, `battle.ts`, `items.ts`, `sets.ts`, `rules.ts`), Ränder nach außen mit Laufzeitprüfung (`api.ts` Gegner, `save.ts` localStorage, `hallOfFame.ts` Hall of Fame). Seiten: Start, Shop, Kampf, Ergebnis, Hall of Fame.
 - **Server:** Express in TypeScript (Port 4200), gestartet mit `tsx`, Typcheck über `tsconfig.server.json` im Build. Endpoints `/api/health`, `/api/opponents`, `GET`/`POST /api/runs`. Regeln der Hall of Fame in `server/runs.ts`, Speicher in-memory hinter `server/runStore.ts`. Doku: `docs/API.md`.
@@ -23,9 +23,9 @@ B1–B7 sind umgesetzt und per PR (#1–#5, #7, #8) nach `main` gemergt, dazu de
 | B5 Matchmaking                 |     10% | Matthias | ✓ gemergt (PR #4, `498091d`) | `game.ts`, `api.ts`, `ShopPage.tsx`                                                    |
 | B6 Save / Resume               |     10% | Matthias | ✓ gemergt (PR #7, `5c9959c`) | `save.ts`, `GameProvider.tsx`, `StartPage.tsx`, `rules.ts`                              |
 | B7 Hall of Fame                |     20% | Roman    | ✓ gemergt (PR #8, `ec19405`) | `server/runs.ts`, `server/index.ts`, `hallOfFame.ts`, `HallOfFameForm.tsx`, `HallOfFamePage.tsx`, `docs/API.md` |
-| Qualitätsziele                 |       – | beide    | fehlt                         | Doku, in der Prüfung verteidigen                                                       |
+| Qualitätsziele                 |       – | beide    | ✓ dokumentiert (`f89a929`)    | `docs/QUALITY.md`                                                                      |
 
-Alle funktionalen Anforderungen sind umgesetzt. Offen sind die Qualitätsziele (Auswahl, Begründung, Evaluation), die beide in der mündlichen Prüfung verteidigen müssen, und der Abschluss des Diary.
+Alle funktionalen und qualitativen Anforderungen sind umgesetzt (Qualitätsziele in `docs/QUALITY.md`, beide verteidigen sie im Abgabegespräch). Offen ist nur noch die Final Reflection im Diary.
 
 ## Aufteilung nach Feature
 
@@ -38,7 +38,7 @@ Beschlossen: Die Arbeit wird nach Feature aufgeteilt, nicht nach Schicht (Fronte
 
 - B7 liegt in einer Hand (Roman), dann gibt es keine Abstimmung über den API-Vertrag (Endpoints, Felder, Fehlerformat, Ranking-Regel). B3/B4 und die Gegner-Tabelle (`server/opponents.js`) liegen ebenfalls bei Roman, ein Vertrag ist also nicht nötig.
 - Konfliktstellen: `types.ts`/`battle.ts`/`items.ts` (B3 und B4, beide Roman, erledigt), `run.ts`/`Backpack.tsx` (B1 und B2, beide Matthias, erledigt), `game.ts`/`ShopPage.tsx`/`GameProvider.tsx` (B5 und B6, beide Matthias, erledigt). B7 hat `save.ts` aus B6 an einer Stelle erweitert (`runId`, `submitted`). Einzige echte Überschneidung: `rules.ts` (Regeltexte aller Features), dort nur neue Abschnitte anhängen.
-- UI-Redesign berührt fast alle Komponenten: erst nach den Features oder klar einer Person zuordnen.
+- UI-Redesign und Barrierefreiheit: als Extras angedacht, keine Anforderung, bewusst weggelassen.
 - Gemeinsam bleiben: Qualitätsziele, `docs/API.md`, Diary.
 
 ## Diary und Bewertung (aus `diary_guidelines-1.pdf`)

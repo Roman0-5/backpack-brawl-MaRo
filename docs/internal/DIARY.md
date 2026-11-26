@@ -13,7 +13,7 @@ Weitreichende Entscheidungen (Architektur, Spielregeln, Trade-offs) kommen zusä
 unter „Important Decisions" in dieses Diary. So bleibt das Diary kurz, und jede
 Begründung ist trotzdem nachvollziehbar.
 
-**Qualitätsziele:** Korrektheit, Zuverlässigkeit, Verständlichkeit und Wartbarkeit, jeweils mit Begründung, Maßnahmen, Trade-offs und Prüfung in `docs/QUALITY.md`. Barrierefreiheit folgt als fünftes Ziel mit dem UI-Redesign.
+**Qualitätsziele:** Korrektheit, Zuverlässigkeit, Verständlichkeit und Wartbarkeit, jeweils mit Begründung, Maßnahmen, Trade-offs und Prüfung in `docs/QUALITY.md`. Barrierefreiheit (als fünftes Ziel) und ein UI-Redesign waren als Extras angedacht. Beides ist keine Anforderung; wir haben es bewusst weggelassen und die Zeit in Doku und Vorbereitung auf das Abgabegespräch gesteckt.
 
 **Zuständigkeiten:**
 
@@ -26,11 +26,11 @@ Begründung ist trotzdem nachvollziehbar.
 | B5 Resilientes Matchmaking                         |     10% | Matthias |
 | B6 Speichern und Fortsetzen                        |     10% | Matthias |
 | B7 Hall of Fame                                    |     20% | Roman    |
-| Qualitätsziele (Auswahl, Begründung, Evaluation) |      – |          |
-| UI-Redesign                                        |      – |          |
-| Tests, `docs/API.md`                             |      – |          |
+| Qualitätsziele (Auswahl, Begründung, Evaluation) |      – | beide    |
+| Tests                                              |      – | je Feature |
+| `docs/API.md`                                      |      – | Roman    |
 
-**Nicht umgesetzte Requirements:** _(am Ende ausfüllen, sonst "keine")_
+**Nicht umgesetzte Requirements:** keine. Alle funktionalen Anforderungen (B1–B7) und die qualitativen Anforderungen (`docs/QUALITY.md`) sind umgesetzt.
 
 ## Important Decisions
 
@@ -126,7 +126,7 @@ Kurze Einträge mit Datum, Kurzerklärung, und Commit-Hash.
 
 | Datum      | Was / Warum                                                                                                                                                                                                                             | Beleg                                                                              |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| 2026-11-20 | Anforderungen und Starter analysiert, Status- und Aufteilungsdiagramme erstellt, Aufteilung nach Feature beschlossen (zuerst Schicht erwogen, wegen Ungleichgewicht verworfen)                                                          | _(Commit)_                                                                       |
+| 2026-11-20 | Anforderungen und Starter analysiert, Status- und Aufteilungsdiagramme erstellt, Aufteilung nach Feature beschlossen (zuerst Schicht erwogen, wegen Ungleichgewicht verworfen)                                                          | `6ac1933` |
 | 2026-11-20 | Doku-Regel (`CHANGES.md` + Diary) und Teststrategie (Entscheidung 2) festgelegt                                                                                                                                                       | `38488ec`, `23a3a2b`                                                           |
 | 2026-11-20 | Versehentlicher Commit auf `main` per `git revert` zurückgenommen statt die gemeinsame Historie umzuschreiben                                                                                                                      | `631d0b4`                                                                        |
 | 2026-11-20 | B1 umgesetzt: Fix voller Rucksack, Verkaufen, Reroll (Entscheidung 3), 12 Unit-Tests. Per PR #1 als Merge-Commit nach `main`                                                                                                          | `3c4ab2f`, `7a1cc4c`, `13a4b2a`, `c2a3f0c`, `54303b9`, Merge `08dbc28` |
@@ -137,6 +137,8 @@ Kurze Einträge mit Datum, Kurzerklärung, und Commit-Hash.
 | 2026-11-21 | Shop-Karten einer Zeile gleich hoch gemacht; eigener PR, weil es nicht zu B6 gehört | `4a84058`, Merge `2b22b43` |
 | 2026-11-21 | B6 umgesetzt: Run überlebt Neuladen, Policy für Suche (abbrechen) und Kampf (zählt sofort), Prüfung kaputter/unmöglicher Saves, „Continue run", Regelpanel (Entscheidung 9). 19 neue Unit-Tests (112 gesamt), manuell im Browser geprüft. Per PR #7 nach `main` | `409f275`, `48a468e`, Merge `5c9959c` |
 | 2026-11-22 | B7 umgesetzt: Run-ID im Save, Server auf TypeScript umgestellt (Entscheidung 11), Validierung und Ranking im Server, Endpoints, Client-API mit geteilten Typen, Eintragen am Run-Ende ohne Doppel-Submit, Hall-of-Fame-Seite, Regeltext (Entscheidung 10). 61 neue Unit-Tests (173 gesamt), Endpoints per curl und UI manuell im Browser geprüft. 10 Commits, per PR #8 nach `main` | `b99348d` … `0dabd02`, Merge `ec19405` |
+| 2026-11-22 | Qualitätsziele festgelegt: Korrektheit, Zuverlässigkeit, Verständlichkeit, Wartbarkeit, je mit Begründung, Maßnahmen, Trade-offs und Prüfung in `docs/QUALITY.md`; Performance und Security bewusst nicht gewählt | `f89a929` |
+| 2026-11-23 | Übersicht aller Commits pro Anforderung mit Links angelegt (`docs/internal/COMMITS.md`), damit sich jede Anforderung schnell im Code nachverfolgen lässt | `54b6c1b` |
 
 ## Final Reflection und Lessons learned
 
