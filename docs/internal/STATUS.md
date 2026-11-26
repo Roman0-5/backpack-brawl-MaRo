@@ -5,12 +5,11 @@ Neu rendern: `d2 --layout=elk docs/diagrams/status.d2 docs/diagrams/status.svg` 
 
 ## Wo wir stehen
 
-B1–B7 sind umgesetzt und per PR (#1–#5, #7, #8) nach `main` gemergt, dazu der Karten-Fix (PR #6). Offen: nur noch die Final Reflection im Diary.
+B1–B7 sind umgesetzt und per PR (#1–#5, #7, #8) nach `main` gemergt, dazu der Karten-Fix (PR #6). Diary inklusive Final Reflection beider Teammitglieder ist fertig, offen ist nichts mehr.
 
 - **Frontend:** React, Vite, Tailwind, react-router (Port 5174). Spielregeln als reine TypeScript-Module ohne React (`run.ts`, `shop.ts`, `game.ts`, `battle.ts`, `items.ts`, `sets.ts`, `rules.ts`), Ränder nach außen mit Laufzeitprüfung (`api.ts` Gegner, `save.ts` localStorage, `hallOfFame.ts` Hall of Fame). Seiten: Start, Shop, Kampf, Ergebnis, Hall of Fame.
 - **Server:** Express in TypeScript (Port 4200), gestartet mit `tsx`, Typcheck über `tsconfig.server.json` im Build. Endpoints `/api/health`, `/api/opponents`, `GET`/`POST /api/runs`. Regeln der Hall of Fame in `server/runs.ts`, Speicher in-memory hinter `server/runStore.ts`. Doku: `docs/API.md`.
 - **Tests:** 173 Vitest-Unit-Tests (`run`, `battle`, `items`, `sets`, `game`, `api`, `save`, `hallOfFame`, `server/runs`).
-- **Nach dem Pull:** `npm install` (seit B7 neu: `tsx`, `@types/express`, `@types/cors`).
 
 ## Anforderungen
 
@@ -25,7 +24,7 @@ B1–B7 sind umgesetzt und per PR (#1–#5, #7, #8) nach `main` gemergt, dazu de
 | B7 Hall of Fame                |     20% | Roman    | ✓ gemergt (PR #8, `ec19405`) | `server/runs.ts`, `server/index.ts`, `hallOfFame.ts`, `HallOfFameForm.tsx`, `HallOfFamePage.tsx`, `docs/API.md` |
 | Qualitätsziele                 |       – | beide    | ✓ dokumentiert (`f89a929`)    | `docs/QUALITY.md`                                                                      |
 
-Alle funktionalen und qualitativen Anforderungen sind umgesetzt (Qualitätsziele in `docs/QUALITY.md`, beide verteidigen sie im Abgabegespräch). Offen ist nur noch die Final Reflection im Diary.
+Alle funktionalen und qualitativen Anforderungen sind umgesetzt (Qualitätsziele in `docs/QUALITY.md`, beide verteidigen sie im Abgabegespräch).
 
 ## Aufteilung nach Feature
 
@@ -51,11 +50,10 @@ Beschlossen: Die Arbeit wird nach Feature aufgeteilt, nicht nach Schicht (Fronte
 
 ## UI
 
-Die UI darf frei umgebaut werden, solange die Pflicht-UI aus B1–B7 erhalten bleibt (Fehlergründe, Auswahl, Status-Anzeigen, Set-Badges, Suchzustand, Hall-of-Fame-Seite mit Lade-/Leer-/Fehlerzustand). Routen `/`, `/shop`, `/battle`, `/result` vorsichtshalber beibehalten.
+Die UI wurde nicht umgebaut (UI-Redesign bewusst weggelassen, siehe oben). Sie enthält die Pflicht-UI aus B1–B7: Fehlergründe, Auswahl, Status-Anzeigen, Set-Badges, Suchzustand, Hall-of-Fame-Seite mit Lade-/Leer-/Fehlerzustand. Routen: `/`, `/shop`, `/battle`, `/result`, `/hall-of-fame`.
 
 ## Verifikation
 
 - `npm run lint && npm test && npm run build` grün.
 - `npm run dev`: Start, Shop, Fight, Result durchspielen.
 - `npm run dev`: Run beenden, Namen eintragen (auch mit Offline + Retry), Hall of Fame öffnen, F5 auf `/hall-of-fame`.
-- Pages: Deploy grün, Refresh auf `/shop` bricht nicht.
