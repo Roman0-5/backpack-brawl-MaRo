@@ -142,4 +142,17 @@ Kurze Einträge mit Datum, Kurzerklärung, und Commit-Hash.
 
 ## Final Reflection und Lessons learned
 
-_(TODO)_
+### Matthias
+
+Rückwirkend muss ich sagen, dass ich das erste Mal den Sinn von vielen und regelmäßigen Commits verstanden habe (ja ich meine das ernst im 5. Semester).
+In früheren Projekten hätte ich bestimmt pro Feature (bspw. B1) committet. Diesmal habe ich es pro kleinem Schritt gemacht und habe verstanden, wie sinnvoll es zwecks der Nachvollziehbarkeit ist, jeden kleinen Schritt direkt zu committen. Vor allem durch den Prüfungscharakter musste ich jede Änderung verstehen und konnte dies anhand der kleinen Commits sehr gut nachvollziehen. 
+
+Die Zusammenarbeit mit Roman lief sehr gut. Wir entschieden uns die Zuständigkeiten nicht nach Front- und Backend zu trennen sondern nach Features. Das funktionierte auch top, da Zuständigkeiten klar getrennt waren und Graubereiche vermieden wurden. Durch das Arbeiten auf verschiedenen Feature-Branches, sowie den anschließenden Pull Requests und den daraus resultierenden Merges kam es auch hierbei zu keinen Komplikationen. 
+
+KI wurde sinnvoll eingesetzt - durch das Verwenden desselben LLM-Modells (Claude) durch Roman und mich wurde sichergestellt, dass wir mit der selben Wissensbasis aus Trainingsdaten arbeiten. Prompts wurden klar und ausführlich formuliert, wie wir damals in der LV Mobile App Development bereits gelernt hatten. Wir haben uns auch auf das Arbeiten mit Unit-Tests geeinigt, wodurch wir vor allem einen Beitrag zur Erfüllung der vier Qualitätsziele leisten wollten, vor allem im Hinblick auf das Ziel Korrektheit. 
+
+Was nicht gut lief: Bei mir fehlte die Leerzeile am Dateiende, wodurch Diffs nicht sauber angezeigt wurden. Mit der VS-Code-Einstellung "files.insertFinalNewline" habe ich das dann behoben. Ich hatte außerdem einmal den Fehler eines doppelten "Try again" Textes weil ich es in save.ts und FightBar hatte. Dieser Fehler konnte nur durch händisches Testen im Browser gefunden werden und wurde nicht durch die Unit-Tests entdeckt. Dies trat auf wenn man während der Gegner-Suche die Seite neu lädt.
+
+### Roman
+
+### Beide / Gemeinsam
