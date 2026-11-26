@@ -165,4 +165,3 @@ Hätte ich nicht Stress mit anderen Fächern gehabt, hätte ich wahrscheinlich v
 Was ich auf jeden Fall gelernt habe, ist, dass Tools wie Claude Code sehr hilfreich sind, aber dadurch die mentale Last sich verschiebt in Richtung System verstehen.
 Und je besser man die Grundlagen und Konzepte versteht, desto besser kann man den Code reviewen und die Tools einsetzen.
 
-### Beide / Gemeinsam
