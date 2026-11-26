@@ -154,5 +154,15 @@ KI wurde sinnvoll eingesetzt - durch das Verwenden desselben LLM-Modells (Claude
 Was nicht gut lief: Bei mir fehlte die Leerzeile am Dateiende, wodurch Diffs nicht sauber angezeigt wurden. Mit der VS-Code-Einstellung "files.insertFinalNewline" habe ich das dann behoben. Ich hatte außerdem einmal den Fehler eines doppelten "Try again" Textes weil ich es in save.ts und FightBar hatte. Dieser Fehler konnte nur durch händisches Testen im Browser gefunden werden und wurde nicht durch die Unit-Tests entdeckt. Dies trat auf wenn man während der Gegner-Suche die Seite neu lädt.
 
 ### Roman
+Grundsätzlich stimme ich mit Matthias überein. Regelmäßig zu committen bzw. Git generell richtig anzuwenden, hat mir sehr geholfen, den Überblick nicht zu verlieren.
+Ich persönlich konnte mich nicht so intensiv mit dem Projekt auseinandersetzen wie erwünscht, wodurch ich mich stark auf KI-Agenten, wie bereits erwähnt Claude Code, stützen musste.
+Was mir geholfen hat, war, mich so früh wie möglich mit der Struktur und Architektur auseinanderzusetzen und zumindest einen konzeptionellen Überblick zu haben, wo was verwendet wird.
+Zusätzlich habe ich gemerkt, dass UnitTests Gold wert sind, aber allein nicht reichen. Den Burn-Bug in B4 zum Beispiel haben die Tests nicht gefunden, weil sie genau die fehlerhafte Regel geprüft haben.
+Aufgedeckt hat ihn erst eine Balance-Simulation, und beim manuellen Testen im Browser habe ich noch zwei Anzeigefehler gefunden.
+
+Hätte ich nicht Stress mit anderen Fächern gehabt, hätte ich wahrscheinlich viel mehr implementiert als gefordert.
+
+Was ich auf jeden Fall gelernt habe, ist, dass Tools wie Claude Code sehr hilfreich sind, aber dadurch die mentale Last sich verschiebt in Richtung System verstehen.
+Und je besser man die Grundlagen und Konzepte versteht, desto besser kann man den Code reviewen und die Tools einsetzen.
 
 ### Beide / Gemeinsam

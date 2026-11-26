@@ -18,8 +18,8 @@ B1–B7 sind umgesetzt und per PR (#1–#5, #7, #8) nach `main` gemergt, dazu de
 | ------------------------------ | ------: | -------- | ----------------------------- | -------------------------------------------------------------------------------------- |
 | B1 Verkaufen / Reroll          |     10% | Matthias | ✓ gemergt (PR #1, `08dbc28`) | `run.ts`, `Shop.tsx`, `Backpack.tsx`, `rules.ts`                                       |
 | B2 Backpack verschieben / swap |     15% | Matthias | ✓ gemergt (PR #2, `e0eb3e9`) | `Backpack.tsx`, `run.ts`                                                               |
-| B3 Poison / Heal               |     15% | Roman    | ✓ gemergt (PR #3, `e5f29c2`) | `types.ts`, `battle.ts`, `items.ts`, `server/opponents.js`, `BattleView.tsx`, `rules.ts` |
-| B4 Sets + Burn                 |     20% | Roman    | ✓ gemergt (PR #5, `30098b0`) | `sets.ts`, `battle.ts`, `items.ts`, `server/opponents.js`, `SetBadge.tsx`, `Backpack.tsx`, `BattleView.tsx`, `rules.ts` |
+| B3 Poison / Heal               |     15% | Roman    | ✓ gemergt (PR #3, `e5f29c2`) | `types.ts`, `battle.ts`, `items.ts`, `server/opponents.ts`, `BattleView.tsx`, `rules.ts` |
+| B4 Sets + Burn                 |     20% | Roman    | ✓ gemergt (PR #5, `30098b0`) | `sets.ts`, `battle.ts`, `items.ts`, `server/opponents.ts`, `SetBadge.tsx`, `Backpack.tsx`, `BattleView.tsx`, `rules.ts` |
 | B5 Matchmaking                 |     10% | Matthias | ✓ gemergt (PR #4, `498091d`) | `game.ts`, `api.ts`, `ShopPage.tsx`                                                    |
 | B6 Save / Resume               |     10% | Matthias | ✓ gemergt (PR #7, `5c9959c`) | `save.ts`, `GameProvider.tsx`, `StartPage.tsx`, `rules.ts`                              |
 | B7 Hall of Fame                |     20% | Roman    | ✓ gemergt (PR #8, `ec19405`) | `server/runs.ts`, `server/index.ts`, `hallOfFame.ts`, `HallOfFameForm.tsx`, `HallOfFamePage.tsx`, `docs/API.md` |
@@ -36,7 +36,7 @@ Beschlossen: Die Arbeit wird nach Feature aufgeteilt, nicht nach Schicht (Fronte
 | Matthias | B1 ✓, B2 ✓, B5 ✓, B6 ✓ |
 | Roman    | B3 ✓, B4 ✓, B7 ✓       |
 
-- B7 liegt in einer Hand (Roman), dann gibt es keine Abstimmung über den API-Vertrag (Endpoints, Felder, Fehlerformat, Ranking-Regel). B3/B4 und die Gegner-Tabelle (`server/opponents.js`) liegen ebenfalls bei Roman, ein Vertrag ist also nicht nötig.
+- B7 liegt in einer Hand (Roman), dann gibt es keine Abstimmung über den API-Vertrag (Endpoints, Felder, Fehlerformat, Ranking-Regel). B3/B4 und die Gegner-Tabelle (`server/opponents.ts`) liegen ebenfalls bei Roman, ein Vertrag ist also nicht nötig.
 - Konfliktstellen: `types.ts`/`battle.ts`/`items.ts` (B3 und B4, beide Roman, erledigt), `run.ts`/`Backpack.tsx` (B1 und B2, beide Matthias, erledigt), `game.ts`/`ShopPage.tsx`/`GameProvider.tsx` (B5 und B6, beide Matthias, erledigt). B7 hat `save.ts` aus B6 an einer Stelle erweitert (`runId`, `submitted`). Einzige echte Überschneidung: `rules.ts` (Regeltexte aller Features), dort nur neue Abschnitte anhängen.
 - UI-Redesign und Barrierefreiheit: als Extras angedacht, keine Anforderung, bewusst weggelassen.
 - Gemeinsam bleiben: Qualitätsziele, `docs/API.md`, Diary.
